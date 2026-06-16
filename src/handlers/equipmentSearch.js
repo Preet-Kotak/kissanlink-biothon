@@ -1,0 +1,157 @@
+const User = require('../models/User');
+const EquipmentListing = require('../models/EquipmentListing');
+const Booking = require('../models/Booking');const { t, strings } = require('../lang/strings');
+const { sendMessage, sendMenu } = require('../services/twilio');
+const { showMainMenu } = require('./mainMenu');
+const { distanceKm, formatDistance, findNearbyEquipment } = require('../services/location');
+
+/**
+ * Equipment search + booking flow
+ * States: EQ_SEARCH_TYPE → EQ_SEARCH_DATE → EQ_SEARCH_RESULTS → EQ_SEARCH_CONFIRM
+ */
+async function handleEquipmentSearch(user, body, location, lang) {
+
+  switch (user.state) {
+
+    // ── Pick equipment type ───────────────────────────────────────────────────
+    case 'EQ_SEARCH_TYPE': {
+      const choice = parseInt(body);
+      if (choice === 6) { await user.updateOne({ state: 'MAIN_MENU', tempData: {} }); return showMainMenu(user, lang); }
+      if (!choice || choice < 1 || choice > strings.equipment_types_raw.length) {
+        await sendMenu(user.phone, t('ask_equipment_type', lang), strings.equipment_types[lang]);
+        break;
+      }
+      const eqType = strings.equipment_types_raw[choice - 1];
+      await user.updateOne({ state: 'EQ_SEARCH_DATE', tempData: { eqType } });
+      await sendMessage(user.phone, t('ask_booking_date', lang) + '\n' + t('back_hint', lang));
+      break;
+    }
+
+    // ── Enter booking date ────────────────────────────────────────────────────
+    case 'EQ_SEARCH_DATE': {
+      const date = parseDate(body.trim());
+      if (!date) {
+        await sendMessage(user.phone, t('invalid_date', lang));
+        break;
+      }
+      const eqType = user.tempData.eqType;
+      await user.updateOne({ tempData: { ...user.tempData, bookingDate: date.toISOString() }, state: 'EQ_SEARCH_RESULTS' });
+
+      // Find nearby listings — 10km first, fallback to 20km
+      const { listings, radiusKm } = await findNearbyEquipment(user.location.coordinates, eqType);
+
+      if (listings.length === 0) {
+        const noFound = t('no_equipment_found', lang).replace('{type}', eqType);
+        await sendMessage(user.phone, noFound);
+        await showMainMenu(user, lang);
+        break;
+      }
+
+      // Build result cards
+      const userCoords = user.location.coordinates;
+      let msg = t('equipment_results_header', lang, eqType, radiusKm) + '\n\n';
+      listings.forEach((l, i) => {
+        const ownerUser = null; // we'll enrich from listing data
+        const dist = formatDistance(distanceKm(userCoords, l.location.coordinates));
+        const rating = l.ratingCount > 0 ? `${l.rating.toFixed(1)}⭐` : '—';
+        msg += t('equipment_card', lang, i + 1, l.ownerName || '—', l.village || '—', l.dailyRate, rating, dist);
+        msg += '\n\n';
+      });
+
+      // Store listing IDs in tempData for confirmation step
+      const listingIds = listings.map((l) => l._id.toString());
+      await user.updateOne({
+        state: 'EQ_SEARCH_CONFIRM',
+        tempData: { ...user.tempData, listingIds },
+      });
+
+      msg += t('ask_select_listing', lang);
+      await sendMessage(user.phone, msg);
+      break;
+    }
+
+    // ── Confirm booking ───────────────────────────────────────────────────────
+    case 'EQ_SEARCH_CONFIRM': {
+      const choice = parseInt(body);
+      const listingIds = user.tempData.listingIds || [];
+
+      if (!choice || choice < 1 || choice > listingIds.length) {
+        await sendMessage(user.phone, t('invalid_input', lang));
+        break;
+      }
+
+      const listing = await EquipmentListing.findById(listingIds[choice - 1]);
+      if (!listing) {
+        await sendMessage(user.phone, t('invalid_input', lang));
+        break;
+      }
+
+      const owner = await User.findById(listing.ownerId);
+      const bookingDate = new Date(user.tempData.bookingDate);
+
+      // Create booking
+      const booking = await Booking.create({
+        type: 'equipment',
+        listingId: listing._id,
+        farmerId: user._id,
+        farmerPhone: user.phone,
+        farmerName: user.name,
+        providerId: listing.ownerId,
+        providerPhone: listing.ownerPhone,
+        providerName: listing.ownerName || owner?.name || '—',
+        bookingDate,
+        status: 'confirmed',
+      });
+
+      // Format phone for display (strip whatsapp: prefix)
+      const ownerDisplayPhone = listing.ownerPhone.replace('whatsapp:', '');
+      const dateStr = formatDate(bookingDate);
+
+      // Confirm to farmer
+      await sendMessage(
+        user.phone,
+        t('booking_confirm_equipment', lang, listing.ownerName || owner?.name || '—', listing.type, dateStr, listing.dailyRate, ownerDisplayPhone)
+      );
+
+      // Notify owner
+      const ownerLang = owner?.language || 'gu';
+      const farmerDisplayPhone = user.phone.replace('whatsapp:', '');
+      await sendMessage(
+        listing.ownerPhone,
+        t('notify_owner_equipment', ownerLang, user.name, listing.type, dateStr, listing.dailyRate, farmerDisplayPhone)
+      );
+
+      await user.updateOne({ state: 'MAIN_MENU', tempData: {} });
+      await showMainMenu(user, lang);
+      break;
+    }
+
+    default:
+      await showMainMenu(user, lang);
+  }
+}
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+function parseDate(str) {
+  // Accept DD-MM-YYYY
+  const match = str.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+  if (!match) return null;
+  const [, day, month, year] = match;
+  const d = new Date(`${year}-${month}-${day}`);
+  if (isNaN(d.getTime())) return null;
+  // Must be today or future
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  if (d < today) return null;
+  return d;
+}
+
+function formatDate(date) {
+  const d = String(date.getDate()).padStart(2, '0');
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const y = date.getFullYear();
+  return `${d}-${m}-${y}`;
+}
+
+module.exports = { handleEquipmentSearch };
