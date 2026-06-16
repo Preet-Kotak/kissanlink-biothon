@@ -5,6 +5,7 @@ const { t, strings } = require('../lang/strings');
 const { sendMessage, sendMenu } = require('../services/twilio');
 const { showMainMenu } = require('./mainMenu');
 const { distanceKm, formatDistance, findNearbyLabour } = require('../services/location');
+const { parseDate, formatDate, dateFromTimestamp } = require('../utils/dateUtils');
 
 /**
  * Labour search + booking flow
@@ -37,7 +38,7 @@ async function handleLabourSearch(user, body, location, lang) {
         break;
       }
       const { skill, skillLabel } = user.tempData;
-      await user.updateOne({ tempData: { ...user.tempData, bookingDate: date.toISOString() }, state: 'LAB_SEARCH_RESULTS' });
+      await user.updateOne({ tempData: { ...user.tempData, bookingDate: date.getTime() }, state: 'LAB_SEARCH_RESULTS' });
 
       // Find nearby workers — 10km first, fallback to 20km
       const { listings: workers, radiusKm } = await findNearbyLabour(user.location.coordinates, skill);
@@ -86,7 +87,7 @@ async function handleLabourSearch(user, body, location, lang) {
       }
 
       const worker = await User.findById(listing.workerId);
-      const bookingDate = new Date(user.tempData.bookingDate);
+      const bookingDate = dateFromTimestamp(user.tempData.bookingDate);
       const skillLabel = user.tempData.skillLabel;
 
       await Booking.create({
@@ -135,27 +136,6 @@ async function handleLabourSearch(user, body, location, lang) {
     default:
       await showMainMenu(user, lang);
   }
-}
-
-// ── Helpers ──────────────────────────────────────────────────────────────────
-
-function parseDate(str) {
-  const match = str.match(/^(\d{2})-(\d{2})-(\d{4})$/);
-  if (!match) return null;
-  const [, day, month, year] = match;
-  const d = new Date(`${year}-${month}-${day}`);
-  if (isNaN(d.getTime())) return null;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  if (d < today) return null;
-  return d;
-}
-
-function formatDate(date) {
-  const d = String(date.getDate()).padStart(2, '0');
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const y = date.getFullYear();
-  return `${d}-${m}-${y}`;
 }
 
 module.exports = { handleLabourSearch };

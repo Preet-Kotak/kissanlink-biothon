@@ -1,9 +1,11 @@
 const User = require('../models/User');
 const EquipmentListing = require('../models/EquipmentListing');
-const Booking = require('../models/Booking');const { t, strings } = require('../lang/strings');
+const Booking = require('../models/Booking');
+const { t, strings } = require('../lang/strings');
 const { sendMessage, sendMenu } = require('../services/twilio');
 const { showMainMenu } = require('./mainMenu');
 const { distanceKm, formatDistance, findNearbyEquipment } = require('../services/location');
+const { parseDate, formatDate, dateFromTimestamp } = require('../utils/dateUtils');
 
 /**
  * Equipment search + booking flow
@@ -35,7 +37,7 @@ async function handleEquipmentSearch(user, body, location, lang) {
         break;
       }
       const eqType = user.tempData.eqType;
-      await user.updateOne({ tempData: { ...user.tempData, bookingDate: date.toISOString() }, state: 'EQ_SEARCH_RESULTS' });
+      await user.updateOne({ tempData: { ...user.tempData, bookingDate: date.getTime() }, state: 'EQ_SEARCH_RESULTS' });
 
       // Find nearby listings — 10km first, fallback to 20km
       const { listings, radiusKm } = await findNearbyEquipment(user.location.coordinates, eqType);
@@ -87,7 +89,7 @@ async function handleEquipmentSearch(user, body, location, lang) {
       }
 
       const owner = await User.findById(listing.ownerId);
-      const bookingDate = new Date(user.tempData.bookingDate);
+      const bookingDate = dateFromTimestamp(user.tempData.bookingDate);
 
       // Create booking
       const booking = await Booking.create({
@@ -129,29 +131,6 @@ async function handleEquipmentSearch(user, body, location, lang) {
     default:
       await showMainMenu(user, lang);
   }
-}
-
-// ── Helpers ──────────────────────────────────────────────────────────────────
-
-function parseDate(str) {
-  // Accept DD-MM-YYYY
-  const match = str.match(/^(\d{2})-(\d{2})-(\d{4})$/);
-  if (!match) return null;
-  const [, day, month, year] = match;
-  const d = new Date(`${year}-${month}-${day}`);
-  if (isNaN(d.getTime())) return null;
-  // Must be today or future
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  if (d < today) return null;
-  return d;
-}
-
-function formatDate(date) {
-  const d = String(date.getDate()).padStart(2, '0');
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const y = date.getFullYear();
-  return `${d}-${m}-${y}`;
 }
 
 module.exports = { handleEquipmentSearch };
