@@ -38,7 +38,7 @@ async function handleLabourSearch(user, body, location, lang) {
         break;
       }
       const { skill, skillLabel } = user.tempData;
-      await user.updateOne({ tempData: { ...user.tempData, bookingDate: date.getTime() }, state: 'LAB_SEARCH_RESULTS' });
+      await user.updateOne({ $set: { 'tempData.bookingDate': date.getTime(), state: 'LAB_SEARCH_RESULTS' } });
 
       // Find nearby workers — 10km first, fallback to 20km
       const { listings: workers, radiusKm } = await findNearbyLabour(user.location.coordinates, skill);
@@ -61,8 +61,10 @@ async function handleLabourSearch(user, body, location, lang) {
 
       const listingIds = workers.map((w) => w._id.toString());
       await user.updateOne({
-        state: 'LAB_SEARCH_CONFIRM',
-        tempData: { ...user.tempData, listingIds },
+        $set: {
+          state: 'LAB_SEARCH_CONFIRM',
+          'tempData.listingIds': listingIds,
+        },
       });
 
       msg += t('ask_select_listing', lang);
@@ -86,9 +88,18 @@ async function handleLabourSearch(user, body, location, lang) {
         break;
       }
 
+      // Re-fetch user to get latest tempData from DB
+      const freshUser = await User.findOne({ phone: user.phone });
+      const bookingDate = dateFromTimestamp(freshUser.tempData?.bookingDate);
+      if (!bookingDate) {
+        await user.updateOne({ state: 'LAB_SEARCH_SKILL', tempData: {} });
+        await sendMessage(user.phone, t('invalid_input', lang));
+        await showMainMenu(user, lang);
+        break;
+      }
+
       const worker = await User.findById(listing.workerId);
-      const bookingDate = dateFromTimestamp(user.tempData.bookingDate);
-      const skillLabel = user.tempData.skillLabel;
+      const skillLabel = freshUser.tempData.skillLabel;
 
       await Booking.create({
         type: 'labour',

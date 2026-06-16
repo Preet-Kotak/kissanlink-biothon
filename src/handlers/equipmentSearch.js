@@ -37,7 +37,7 @@ async function handleEquipmentSearch(user, body, location, lang) {
         break;
       }
       const eqType = user.tempData.eqType;
-      await user.updateOne({ tempData: { ...user.tempData, bookingDate: date.getTime() }, state: 'EQ_SEARCH_RESULTS' });
+      await user.updateOne({ $set: { 'tempData.bookingDate': date.getTime(), state: 'EQ_SEARCH_RESULTS' } });
 
       // Find nearby listings — 10km first, fallback to 20km
       const { listings, radiusKm } = await findNearbyEquipment(user.location.coordinates, eqType);
@@ -63,8 +63,10 @@ async function handleEquipmentSearch(user, body, location, lang) {
       // Store listing IDs in tempData for confirmation step
       const listingIds = listings.map((l) => l._id.toString());
       await user.updateOne({
-        state: 'EQ_SEARCH_CONFIRM',
-        tempData: { ...user.tempData, listingIds },
+        $set: {
+          state: 'EQ_SEARCH_CONFIRM',
+          'tempData.listingIds': listingIds,
+        },
       });
 
       msg += t('ask_select_listing', lang);
@@ -88,8 +90,18 @@ async function handleEquipmentSearch(user, body, location, lang) {
         break;
       }
 
+      // Re-fetch user to get latest tempData from DB
+      const freshUser = await User.findOne({ phone: user.phone });
+      const bookingDate = dateFromTimestamp(freshUser.tempData?.bookingDate);
+      if (!bookingDate) {
+        // tempData lost — restart the flow
+        await user.updateOne({ state: 'EQ_SEARCH_TYPE', tempData: {} });
+        await sendMessage(user.phone, t('invalid_input', lang));
+        await showMainMenu(user, lang);
+        break;
+      }
+
       const owner = await User.findById(listing.ownerId);
-      const bookingDate = dateFromTimestamp(user.tempData.bookingDate);
 
       // Create booking
       const booking = await Booking.create({
