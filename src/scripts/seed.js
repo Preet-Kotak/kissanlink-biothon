@@ -102,6 +102,11 @@ const seedLabour = [
 ];
 
 async function seed() {
+  // Safety check: prevent running against production DB
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('❌ Seed scripts cannot run in production environment');
+  }
+
   await mongoose.connect(process.env.MONGODB_URI);
   console.log('✅ Connected to MongoDB');
 

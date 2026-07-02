@@ -11,7 +11,9 @@
     "dev": "nodemon src/index.js",
     "seed": "node src/scripts/seed.js",
     "seed:bhimrad": "node src/scripts/seedBhimrad.js",
-    "seed:all": "node src/scripts/seed.js && node src/scripts/seedBhimrad.js"
+    "seed:surat": "node src/scripts/seedSurat.js",
+    "seed:all": "node src/scripts/seed.js && node src/scripts/seedBhimrad.js && node src/scripts/seedSurat.js",
+    "reset:user": "node src/scripts/resetUser.js"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
