@@ -57,6 +57,14 @@ async function handleMainMenu(user, body, lang) {
       await handleProfileView(user, lang);
       break;
 
+    case 6: // My Bookings (Task 4 - Part 8)
+      await user.updateOne({ state: 'MY_BOOKINGS', tempData: {} });
+      await sendMessage(user.phone, t('my_bookings_placeholder', lang));
+      // Note: Full implementation depends on Task 1
+      // For now, just acknowledge and return to menu
+      await showMainMenu(user, lang);
+      break;
+
     default:
       await sendMenu(user.phone, t('main_menu', lang), strings.main_menu_options[lang]);
   }
