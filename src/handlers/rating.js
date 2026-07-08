@@ -33,14 +33,61 @@ async function handleRating(user, body, lang) {
     return;
   }
 
+  // ── ABUSE PREVENTION CHECKS (Task 4 - Part 6) ──────────────────────────────
+  
+  // 1. Check if user is a valid participant in this booking
+  const isParticipant = 
+    user._id.toString() === booking.farmerId.toString() ||
+    user._id.toString() === booking.providerId.toString();
+  
+  if (!isParticipant) {
+    await sendMessage(user.phone, t('not_booking_participant', lang));
+    await user.updateOne({ state: 'MAIN_MENU', tempData: {} });
+    await showMainMenu(user, lang);
+    return;
+  }
+
+  // 2. Prevent self-rating (if someone is both farmer and provider - edge case)
+  if (booking.farmerId.toString() === booking.providerId.toString()) {
+    await sendMessage(user.phone, t('cannot_rate_self', lang));
+    await user.updateOne({ state: 'MAIN_MENU', tempData: {} });
+    await showMainMenu(user, lang);
+    return;
+  }
+
+  // 3. Check for duplicate rating
+  if (role === 'farmer' && booking.farmerRated) {
+    await sendMessage(user.phone, t('already_rated', lang));
+    await user.updateOne({ state: 'MAIN_MENU', tempData: {} });
+    await showMainMenu(user, lang);
+    return;
+  }
+  
+  if (role === 'provider' && booking.providerRated) {
+    await sendMessage(user.phone, t('already_rated', lang));
+    await user.updateOne({ state: 'MAIN_MENU', tempData: {} });
+    await showMainMenu(user, lang);
+    return;
+  }
+
+  // ────────────────────────────────────────────────────────────────────────────
+
   if (role === 'farmer') {
     // Farmer is rating the provider (owner/worker)
-    await booking.updateOne({ farmerRatedProvider: true, farmerRating: rating });
+    await booking.updateOne({ 
+      farmerRatedProvider: true, 
+      farmerRating: rating,
+      farmerRated: true  // New flag for Task 4
+    });
     // Update provider's overall rating
     await updateUserRating(booking.providerId, rating);
   } else {
     // Provider is rating the farmer
-    await booking.updateOne({ providerRatedFarmer: true, providerRating: rating });
+    await booking.updateOne({ 
+      providerRatedFarmer: true, 
+      providerRating: rating,
+      providerRated: true  // New flag for Task 4
+    });
     await updateUserRating(booking.farmerId, rating);
   }
 

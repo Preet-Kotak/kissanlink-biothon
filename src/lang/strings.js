@@ -40,9 +40,15 @@ const strings = {
   },
 
   main_menu_options: {
-    gu: ['🚜 સાધન ભાડે લો', '👷 મજૂર શોધો', '📋 સાધન ભાડે આપો', '💼 કામ ઓફર કરો', '⚙️ મારી પ્રોફાઇલ'],
-    hi: ['🚜 उपकरण किराए पर लें', '👷 मजदूर खोजें', '📋 उपकरण किराए पर दें', '💼 काम ऑफर करें', '⚙️ मेरी प्रोफाइल'],
-    en: ['🚜 Rent Equipment', '👷 Find Labour', '📋 List My Equipment', '💼 Offer Work', '⚙️ My Profile'],
+    gu: ['🚜 સાધન ભાડે લો', '👷 મજૂર શોધો', '📋 સાધન ભાડે આપો', '💼 કામ ઓફર કરો', '⚙️ મારી પ્રોફાઇલ', '📅 મારા Bookings'],
+    hi: ['🚜 उपकरण किराए पर लें', '👷 मजदूर खोजें', '📋 उपकरण किराए पर दें', '💼 काम ऑफर करें', '⚙️ मेरी प्रोफाइल', '📅 मेरे Bookings'],
+    en: ['🚜 Rent Equipment', '👷 Find Labour', '📋 List My Equipment', '💼 Offer Work', '⚙️ My Profile', '📅 My Bookings'],
+  },
+
+  my_bookings_placeholder: {
+    gu: `📅 મારા Bookings\n\n_આ ફીચર જલ્દી ઉપલબ્ધ થશે._`,
+    hi: `📅 मेरे Bookings\n\n_यह फीचर जल्द उपलब्ध होगा._`,
+    en: `📅 My Bookings\n\n_This feature will be available soon._`,
   },
 
   // ── Equipment Search ─────────────────────────────────────────────────────────
@@ -234,6 +240,26 @@ const strings = {
     en: (stars) => `✅ ${stars}⭐ rating saved. Thank you!`,
   },
 
+  // ── Rating Abuse Prevention (Task 4) ────────────────────────────────────────
+
+  cannot_rate_self: {
+    gu: `⚠️ તમે તમારી જાતને rate કરી શકતા નથી.`,
+    hi: `⚠️ आप खुद को rate नहीं कर सकते।`,
+    en: `⚠️ You cannot rate yourself.`,
+  },
+
+  already_rated: {
+    gu: `⚠️ તમે આ booking માટે પહેલાથી rate આપ્યું છે.`,
+    hi: `⚠️ आपने पहले से इस booking के लिए rate दिया है।`,
+    en: `⚠️ You've already rated this booking.`,
+  },
+
+  not_booking_participant: {
+    gu: `⚠️ તમે આ booking નો ભાગ નથી.`,
+    hi: `⚠️ आप इस booking के हिस्से नहीं हैं।`,
+    en: `⚠️ You're not part of this booking.`,
+  },
+
   // ── Profile ──────────────────────────────────────────────────────────────────
 
   profile_view: {
@@ -255,6 +281,12 @@ const strings = {
   // type 0 at any point also returns to main menu
 
   // ── Generic ──────────────────────────────────────────────────────────────────
+
+  system_error: {
+    gu: `⚠️ કંઈક ખોટું થયું. કૃપા કરીને ફરી પ્રયાસ કરો.`,
+    hi: `⚠️ कुछ गलत हुआ. कृपया फिर से प्रयास करें.`,
+    en: `⚠️ Something went wrong. Please try again.`,
+  },
 
   invalid_input: {
     gu: `⚠️ માફ કરજો, હું સમજ્યો નહીં. નીચેના વિકલ્પોમાંથી પસંდ કરો.`,
