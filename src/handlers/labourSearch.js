@@ -20,13 +20,13 @@ async function handleLabourSearch(user, body, location, lang) {
       const choice = parseInt(body);
       if (choice === 6) { await user.updateOne({ state: 'MAIN_MENU', tempData: {} }); return showMainMenu(user, lang); }
       if (!choice || choice < 1 || choice > strings.labour_skills_raw.length) {
-        await sendMenu(user.phone, t('ask_labour_skill', lang), strings.labour_skills[lang]);
+        await sendMenu(user.phone, t('ask_labour_skill', lang), strings.labour_skills[lang], lang);
         break;
       }
       const skill = strings.labour_skills_raw[choice - 1];
       const skillLabel = strings.labour_skills[lang][choice - 1];
       await user.updateOne({ state: 'LAB_SEARCH_DATE', tempData: { skill, skillLabel } });
-      await sendMessage(user.phone, t('ask_booking_date', lang) + '\n' + t('back_hint', lang));
+      await sendMessage(user.phone, t('ask_booking_date', lang), lang);
       break;
     }
 
@@ -34,7 +34,7 @@ async function handleLabourSearch(user, body, location, lang) {
     case 'LAB_SEARCH_DATE': {
       const date = parseDate(body.trim());
       if (!date) {
-        await sendMessage(user.phone, t('invalid_date', lang));
+        await sendMessage(user.phone, t('invalid_date', lang), lang);
         break;
       }
       const { skill, skillLabel } = user.tempData;
@@ -45,13 +45,13 @@ async function handleLabourSearch(user, body, location, lang) {
 
       if (workers.length === 0) {
         const noFound = t('no_labour_found', lang).replace('{skill}', skillLabel);
-        await sendMessage(user.phone, noFound);
+        await sendMessage(user.phone, noFound, lang);
         await showMainMenu(user, lang);
         break;
       }
 
       const userCoords = user.location.coordinates;
-      let msg = t('labour_results_header', lang, skillLabel, radiusKm) + '\n\n';
+      let msg = t('labour_results_header', lang, workers.length, skillLabel, radiusKm) + '\n\n';
       workers.forEach((w, i) => {
         const dist = formatDistance(distanceKm(userCoords, w.location.coordinates));
         const rating = w.ratingCount > 0 ? `${w.rating.toFixed(1)}⭐` : '—';
@@ -68,7 +68,7 @@ async function handleLabourSearch(user, body, location, lang) {
       });
 
       msg += t('ask_select_listing', lang);
-      await sendMessage(user.phone, msg);
+      await sendMessage(user.phone, msg, lang);
       break;
     }
 
@@ -78,13 +78,13 @@ async function handleLabourSearch(user, body, location, lang) {
       const listingIds = user.tempData.listingIds || [];
 
       if (!choice || choice < 1 || choice > listingIds.length) {
-        await sendMessage(user.phone, t('invalid_input', lang));
+        await sendMessage(user.phone, t('invalid_input', lang), lang);
         break;
       }
 
       const listing = await LabourListing.findById(listingIds[choice - 1]);
       if (!listing) {
-        await sendMessage(user.phone, t('invalid_input', lang));
+        await sendMessage(user.phone, t('invalid_input', lang), lang);
         break;
       }
 
@@ -93,7 +93,7 @@ async function handleLabourSearch(user, body, location, lang) {
       const bookingDate = dateFromTimestamp(freshUser.tempData?.bookingDate);
       if (!bookingDate) {
         await user.updateOne({ state: 'LAB_SEARCH_SKILL', tempData: {} });
-        await sendMessage(user.phone, t('invalid_input', lang));
+        await sendMessage(user.phone, t('invalid_input', lang), lang);
         await showMainMenu(user, lang);
         break;
       }
@@ -101,7 +101,7 @@ async function handleLabourSearch(user, body, location, lang) {
       const worker = await User.findById(listing.workerId);
       const skillLabel = freshUser.tempData.skillLabel;
 
-      await Booking.create({
+      const booking = await Booking.create({
         type: 'labour',
         listingId: listing._id,
         farmerId: user._id,
@@ -114,13 +114,16 @@ async function handleLabourSearch(user, body, location, lang) {
         status: 'confirmed',
       });
 
+      await listing.updateOne({ available: false });
+
       const workerDisplayPhone = listing.workerPhone.replace('whatsapp:', '');
       const dateStr = formatDate(bookingDate);
 
       // Confirm to farmer
       await sendMessage(
         user.phone,
-        t('booking_confirm_labour', lang, listing.workerName, skillLabel, dateStr, listing.dailyRate, workerDisplayPhone)
+        t('booking_confirm_labour', lang, booking.bookingId, listing.workerName, skillLabel, dateStr, listing.dailyRate, workerDisplayPhone),
+        lang
       );
 
       // Notify worker
@@ -128,7 +131,8 @@ async function handleLabourSearch(user, body, location, lang) {
       const farmerDisplayPhone = user.phone.replace('whatsapp:', '');
       await sendMessage(
         listing.workerPhone,
-        t('notify_worker_labour', workerLang, user.name, skillLabel, dateStr, listing.dailyRate, farmerDisplayPhone)
+        t('notify_worker_labour', workerLang, booking.bookingId, user.name, skillLabel, dateStr, listing.dailyRate, farmerDisplayPhone),
+        workerLang
       );
 
       await user.updateOne({ state: 'MAIN_MENU', tempData: {} });

@@ -7,7 +7,7 @@ const { sendMessage, sendMenu } = require('../services/twilio');
  */
 async function showMainMenu(user, lang) {
   await user.updateOne({ state: 'MAIN_MENU' });
-  await sendMenu(user.phone, t('main_menu', lang), strings.main_menu_options[lang]);
+  await sendMenu(user.phone, t('main_menu', lang), strings.main_menu_options[lang], lang);
 }
 
 /**
@@ -22,7 +22,8 @@ async function handleMainMenu(user, body, lang) {
       await sendMenu(
         user.phone,
         t('ask_equipment_type', lang),
-        strings.equipment_types[lang]
+        strings.equipment_types[lang],
+        lang
       );
       break;
 
@@ -31,7 +32,8 @@ async function handleMainMenu(user, body, lang) {
       await sendMenu(
         user.phone,
         t('ask_labour_skill', lang),
-        strings.labour_skills[lang]
+        strings.labour_skills[lang],
+        lang
       );
       break;
 
@@ -40,7 +42,8 @@ async function handleMainMenu(user, body, lang) {
       await sendMenu(
         user.phone,
         t('ask_list_equipment_type', lang),
-        strings.equipment_types[lang]
+        strings.equipment_types[lang],
+        lang
       );
       break;
 
@@ -49,7 +52,8 @@ async function handleMainMenu(user, body, lang) {
       await sendMenu(
         user.phone,
         t('ask_worker_skill', lang),
-        strings.labour_skills[lang]
+        strings.labour_skills[lang],
+        lang
       );
       break;
 
@@ -58,7 +62,7 @@ async function handleMainMenu(user, body, lang) {
       break;
 
     default:
-      await sendMenu(user.phone, t('main_menu', lang), strings.main_menu_options[lang]);
+      await sendMenu(user.phone, t('main_menu', lang), strings.main_menu_options[lang], lang);
   }
 }
 
@@ -66,19 +70,18 @@ async function handleMainMenu(user, body, lang) {
  * Quick profile view from main menu
  */
 async function handleProfileView(user, lang) {
-  const roleLabels = {
-    gu: { farmer: 'ખેડૂત', owner: 'માલિક', worker: 'મજૂર' },
-    hi: { farmer: 'किसान', owner: 'मालिक', worker: 'मजदूर' },
-    en: { farmer: 'Farmer', owner: 'Owner', worker: 'Worker' },
-  };
-  const roles = user.roles.map((r) => roleLabels[lang][r] || r).join(', ');
-  const rating = user.ratingCount > 0 ? user.rating.toFixed(1) : (lang === 'gu' ? 'હજી નહીં' : lang === 'hi' ? 'अभी नहीं' : 'None yet');
+  const freshUser = await User.findById(user._id);
+  const roles = freshUser.roles.map((r) => t(`role_${r}`, lang)).join(', ');
 
-  await user.updateOne({ state: 'PROFILE_MENU' });
+  const langNames = { gu: 'Gujarati', hi: 'Hindi', en: 'English' };
+  const languageDisplay = langNames[freshUser.language || 'gu'];
+
+  await freshUser.updateOne({ state: 'PROFILE_MENU' });
   await sendMenu(
-    user.phone,
-    t('profile_view', lang, user.name, user.village || '—', roles, rating, user.ratingCount),
-    strings.profile_options[lang]
+    freshUser.phone,
+    t('profile_view', lang, freshUser.name, freshUser.village || 'Not set', languageDisplay, roles),
+    strings.profile_options[lang],
+    lang
   );
 }
 

@@ -13,6 +13,27 @@ const strings = {
     en: `🌾 *Welcome to KissanLink!*\n\nWhatsApp marketplace for Gujarat farmers.\n\nChoose your language:`,
   },
 
+  // Shown after language selection — includes consent/privacy notice
+  welcome_with_consent: {
+    gu: `🌾 *KissanLink માં આપનું સ્વાગત છે!*\n\n📋 *ગોપનીયતા નોટિસ:* તમારો ફોન નંબર અને લોકેશન માત્ર નજીકના listings બતાવવા માટે વપરાશે. તમારો ડેટા third parties સાથે શેર થતો નથી.`,
+    hi: `🌾 *KissanLink में आपका स्वागत है!*\n\n📋 *गोपनीयता नोटिस:* आपका फोन नंबर और location केवल नज़दीकी listings दिखाने के लिए use होंगे। आपका data third parties के साथ share नहीं किया जाता।`,
+    en: `🌾 *Welcome to KissanLink!*\n\n📋 *Privacy Notice:* Your phone number and location are only used to show nearby listings. Your data is not shared with third parties.`,
+  },
+
+  // Prompted after location is shared during onboarding / profile edit
+  village_prompt: {
+    gu: `🏘️ તમે કયા ગામ/શહેરમાંથી છો? (નામ લખો):`,
+    hi: `🏘️ आप किस गांव/शहर से हैं? (नाम लिखें):`,
+    en: `🏘️ Which village/town are you from? (Type name):`,
+  },
+
+  // Confirmation after village is saved from profile edit
+  village_updated: {
+    gu: (village) => `✅ ગામ અપડેટ થયું: *${village}*`,
+    hi: (village) => `✅ गांव अपडेट हुआ: *${village}*`,
+    en: (village) => `✅ Village updated: *${village}*`,
+  },
+
   ask_name: {
     gu: `તમારું પૂરું નામ ટાઈપ કરો:`,
     hi: `अपना पूरा नाम टाइप करें:`,
@@ -68,15 +89,15 @@ const strings = {
   },
 
   no_equipment_found: {
-    gu: `😔 10km ની અંદર કોઈ *{type}* ઉપલબ્ધ નથી.\n\nથોડા સમય પછી ફરી ચકાસો.`,
-    hi: `😔 10km के भीतर कोई *{type}* उपलब्ध नहीं है.\n\nथोड़ी देर बाद फिर जांचें.`,
-    en: `😔 No *{type}* available within 10km.\n\nCheck again later.`,
+    gu: `😔 પસંદ કરેલી તારીખ માટે 10km ની અંદર કોઈ *{type}* ઉપલબ્ધ નથી.\n\nઅન્ય તારીખ પસંદ કરો અથવા પછી ફરી પ્રયાસ કરો.`,
+    hi: `😔 चुनी गई तारीख के लिए 10km के भीतर कोई *{type}* उपलब्ध नहीं है.\n\nअन्य तारीख चुनें या बाद में फिर प्रयास करें.`,
+    en: `😔 No *{type}* are available for the selected date within 10 km.\n\nTry another date or search again later.`,
   },
 
   equipment_results_header: {
-    gu: (type, radius) => `✅ નજીકના *${type}* મળ્યા (${radius}km માં):`,
-    hi: (type, radius) => `✅ नज़दीकी *${type}* मिले (${radius}km में):`,
-    en: (type, radius) => `✅ Nearby *${type}* found (within ${radius}km):`,
+    gu: (count, type, radius) => `✅ નજીકના ${count} *${type}* મળ્યા (${radius}km માં):`,
+    hi: (count, type, radius) => `✅ नज़दीकी ${count} *${type}* मिले (${radius}km में):`,
+    en: (count, type, radius) => `✅ Found ${count} *${type}* near you (within ${radius}km):`,
   },
 
   equipment_card: {
@@ -89,9 +110,9 @@ const strings = {
   },
 
   ask_select_listing: {
-    gu: `કઈ પસંદ કરો? (1 / 2 / 3 ટાઈપ કરો)`,
-    hi: `कौन सा चुनें? (1 / 2 / 3 टाइप करें)`,
-    en: `Which one to book? (Type 1 / 2 / 3)`,
+    gu: `તમે કયું બુક કરવા માંગો છો તેનો નંબર મોકલો.`,
+    hi: `आप जो बुक करना चाहते हैं उसका नंबर भेजें।`,
+    en: `Reply with the number of the option you'd like to book.`,
   },
 
   // ── Equipment Listing (owner side) ──────────────────────────────────────────
@@ -137,15 +158,15 @@ const strings = {
   },
 
   no_labour_found: {
-    gu: `😔 10km ની અંદર *{skill}* માટે કોઈ મજૂર ઉપલબ્ધ નથી.`,
-    hi: `😔 10km के भीतर *{skill}* के लिए कोई मजदूर उपलब्ध नहीं है.`,
-    en: `😔 No workers available for *{skill}* within 10km.`,
+    gu: `😔 પસંદ કરેલી તારીખ માટે 10km ની અંદર *{skill}* માટે કોઈ મજૂર ઉપલબ્ધ નથી.\n\nઅન્ય તારીખ પસંદ કરો અથવા પછી ફરી પ્રયાસ કરો.`,
+    hi: `😔 चुनी गई तारीख के लिए 10km के भीतर *{skill}* के लिए कोई मजदूर उपलब्ध नहीं है.\n\nअन्य तारीख चुनें या बाद में फिर प्रयास करें.`,
+    en: `😔 No workers are available for *{skill}* for the selected date within 10 km.\n\nTry another date or search again later.`,
   },
 
   labour_results_header: {
-    gu: (skill, radius) => `✅ *${skill}* માટે નજીકના મજૂર (${radius}km માં):`,
-    hi: (skill, radius) => `✅ *${skill}* के लिए नज़दीकी मजदूर (${radius}km में):`,
-    en: (skill, radius) => `✅ Nearby workers for *${skill}* (within ${radius}km):`,
+    gu: (count, skill, radius) => `✅ *${skill}* માટે નજીકના ${count} મજૂર મળ્યા (${radius}km માં):`,
+    hi: (count, skill, radius) => `✅ *${skill}* के लिए नज़दीकी ${count} मजदूर मिले (${radius}km में):`,
+    en: (count, skill, radius) => `✅ Found ${count} workers for *${skill}* near you (within ${radius}km):`,
   },
 
   labour_card: {
@@ -180,41 +201,73 @@ const strings = {
   // ── Booking Confirmation ─────────────────────────────────────────────────────
 
   booking_confirm_equipment: {
-    gu: (name, type, date, rate, phone) =>
-      `✅ *બુકિંગ Confirmed!*\n\n🚜 સાધન: *${type}*\n👤 માલિક: *${name}*\n📅 તારીખ: ${date}\n💰 ભાવ: ₹${rate}/દિવસ\n📞 સંપર્ક: ${phone}\n\n_માલિક ને notification ગઈ છે. સીધો સંપર્ક કરી શકો છો._`,
-    hi: (name, type, date, rate, phone) =>
-      `✅ *बुकिंग Confirmed!*\n\n🚜 उपकरण: *${type}*\n👤 मालिक: *${name}*\n📅 तारीख: ${date}\n💰 किराया: ₹${rate}/दिन\n📞 संपर्क: ${phone}\n\n_मालिक को notification भेजी गई है। सीधे संपर्क कर सकते हैं।_`,
-    en: (name, type, date, rate, phone) =>
-      `✅ *Booking Confirmed!*\n\n🚜 Equipment: *${type}*\n👤 Owner: *${name}*\n📅 Date: ${date}\n💰 Rate: ₹${rate}/day\n📞 Contact: ${phone}\n\n_Owner has been notified. You can contact them directly._`,
+    gu: (bookingId, name, type, date, rate, phone) =>
+      `✅ *બુકિંગ Confirmed!*\n\nBooking ID: ${bookingId}\n🚜 સાધન: *${type}*\n👤 માલિક: *${name}*\n📅 તારીખ: ${date}\n💰 ભાવ: ₹${rate}/દિવસ\n📞 સંપર્ક: ${phone}\n\n_માલિક ને notification ગઈ છે. સીધો સંપર્ક કરી શકો છો._\n\n(રદ કરવા માટે લખો: CANCEL ${bookingId})`,
+    hi: (bookingId, name, type, date, rate, phone) =>
+      `✅ *बुकिंग Confirmed!*\n\nBooking ID: ${bookingId}\n🚜 उपकरण: *${type}*\n👤 मालिक: *${name}*\n📅 तारीख: ${date}\n💰 किराया: ₹${rate}/दिन\n📞 संपर्क: ${phone}\n\n_मालिक को notification भेजी गई है। सीधे संपर्क कर सकते हैं।_\n\n(रद्द करने के लिए लिखें: CANCEL ${bookingId})`,
+    en: (bookingId, name, type, date, rate, phone) =>
+      `✅ *Booking Confirmed!*\n\nBooking ID: ${bookingId}\n🚜 Equipment: *${type}*\n👤 Owner: *${name}*\n📅 Date: ${date}\n💰 Rate: ₹${rate}/day\n📞 Contact: ${phone}\n\n_Owner has been notified. You can contact them directly._\n\n(To cancel, reply: CANCEL ${bookingId})`,
   },
 
   booking_confirm_labour: {
-    gu: (name, skill, date, rate, phone) =>
-      `✅ *બુકિંગ Confirmed!*\n\n🌾 કામ: *${skill}*\n👤 મજૂર: *${name}*\n📅 તારીખ: ${date}\n💰 મજૂરી: ₹${rate}/દિવસ\n📞 સંપર્ક: ${phone}\n\n_મજૂર ને notification ગઈ છે. સીધો સંપર્ક કરી શકો છો._`,
-    hi: (name, skill, date, rate, phone) =>
-      `✅ *बुकिंग Confirmed!*\n\n🌾 काम: *${skill}*\n👤 मजदूर: *${name}*\n📅 तारीख: ${date}\n💰 मजदूरी: ₹${rate}/दिन\n📞 संपर्क: ${phone}\n\n_मजदूर को notification भेजी गई है। सीधे संपर्क कर सकते हैं।_`,
-    en: (name, skill, date, rate, phone) =>
-      `✅ *Booking Confirmed!*\n\n🌾 Work: *${skill}*\n👤 Worker: *${name}*\n📅 Date: ${date}\n💰 Wage: ₹${rate}/day\n📞 Contact: ${phone}\n\n_Worker has been notified. You can contact them directly._`,
+    gu: (bookingId, name, skill, date, rate, phone) =>
+      `✅ *બુકિંગ Confirmed!*\n\nBooking ID: ${bookingId}\n🌾 કામ: *${skill}*\n👤 મજૂર: *${name}*\n📅 તારીખ: ${date}\n💰 મજૂરી: ₹${rate}/દિવસ\n📞 સંપર્ક: ${phone}\n\n_મજૂર ને notification ગઈ છે. સીધો સંપર્ક કરી શકો છો._\n\n(રદ કરવા માટે લખો: CANCEL ${bookingId})`,
+    hi: (bookingId, name, skill, date, rate, phone) =>
+      `✅ *बुकिंग Confirmed!*\n\nBooking ID: ${bookingId}\n🌾 काम: *${skill}*\n👤 मजदूर: *${name}*\n📅 तारीख: ${date}\n💰 मजदूरी: ₹${rate}/दिन\n📞 संपर्क: ${phone}\n\n_मजदूर को notification भेजी गई है। सीधे संपर्क कर सकते हैं।_\n\n(रद्द करने के लिए लिखें: CANCEL ${bookingId})`,
+    en: (bookingId, name, skill, date, rate, phone) =>
+      `✅ *Booking Confirmed!*\n\nBooking ID: ${bookingId}\n🌾 Work: *${skill}*\n👤 Worker: *${name}*\n📅 Date: ${date}\n💰 Wage: ₹${rate}/day\n📞 Contact: ${phone}\n\n_Worker has been notified. You can contact them directly._\n\n(To cancel, reply: CANCEL ${bookingId})`,
   },
 
   // ── Owner/Worker Notification ────────────────────────────────────────────────
 
   notify_owner_equipment: {
-    gu: (farmerName, type, date, rate, farmerPhone) =>
-      `🔔 *નવી બુકિંગ!*\n\n🚜 સાધન: *${type}*\n👤 ખેડૂત: *${farmerName}*\n📅 તારીખ: ${date}\n💰 ભાવ: ₹${rate}/દિવસ\n📞 સંપર્ક: ${farmerPhone}\n\n_KissanLink_`,
-    hi: (farmerName, type, date, rate, farmerPhone) =>
-      `🔔 *नई बुकिंग!*\n\n🚜 उपकरण: *${type}*\n👤 किसान: *${farmerName}*\n📅 तारीख: ${date}\n💰 किराया: ₹${rate}/दिन\n📞 संपर्क: ${farmerPhone}\n\n_KissanLink_`,
-    en: (farmerName, type, date, rate, farmerPhone) =>
-      `🔔 *New Booking!*\n\n🚜 Equipment: *${type}*\n👤 Farmer: *${farmerName}*\n📅 Date: ${date}\n💰 Rate: ₹${rate}/day\n📞 Contact: ${farmerPhone}\n\n_KissanLink_`,
+    gu: (bookingId, farmerName, type, date, rate, farmerPhone) =>
+      `🔔 *નવી બુકિંગ!*\n\nBooking ID: ${bookingId}\n🚜 સાધન: *${type}*\n👤 ખેડૂત: *${farmerName}*\n📅 તારીખ: ${date}\n💰 ભાવ: ₹${rate}/દિવસ\n📞 સંપર્ક: ${farmerPhone}\n\n_KissanLink_`,
+    hi: (bookingId, farmerName, type, date, rate, farmerPhone) =>
+      `🔔 *नई बुकिंग!*\n\nBooking ID: ${bookingId}\n🚜 उपकरण: *${type}*\n👤 किसान: *${farmerName}*\n📅 तारीख: ${date}\n💰 किराया: ₹${rate}/दिन\n📞 संपर्क: ${farmerPhone}\n\n_KissanLink_`,
+    en: (bookingId, farmerName, type, date, rate, farmerPhone) =>
+      `🔔 *New Booking!*\n\nBooking ID: ${bookingId}\n🚜 Equipment: *${type}*\n👤 Farmer: *${farmerName}*\n📅 Date: ${date}\n💰 Rate: ₹${rate}/day\n📞 Contact: ${farmerPhone}\n\n_KissanLink_`,
   },
 
   notify_worker_labour: {
-    gu: (farmerName, skill, date, rate, farmerPhone) =>
-      `🔔 *કામ મળ્યું!*\n\n🌾 કામ: *${skill}*\n👤 ખેડૂત: *${farmerName}*\n📅 તારીખ: ${date}\n💰 મજૂરી: ₹${rate}/દિવસ\n📞 સંપર્ક: ${farmerPhone}\n\n_KissanLink_`,
-    hi: (farmerName, skill, date, rate, farmerPhone) =>
-      `🔔 *काम मिला!*\n\n🌾 काम: *${skill}*\n👤 किसान: *${farmerName}*\n📅 तारीख: ${date}\n💰 मजदूरी: ₹${rate}/दिन\n📞 संपर्क: ${farmerPhone}\n\n_KissanLink_`,
-    en: (farmerName, skill, date, rate, farmerPhone) =>
-      `🔔 *Work Assigned!*\n\n🌾 Work: *${skill}*\n👤 Farmer: *${farmerName}*\n📅 Date: ${date}\n💰 Wage: ₹${rate}/day\n📞 Contact: ${farmerPhone}\n\n_KissanLink_`,
+    gu: (bookingId, farmerName, skill, date, rate, farmerPhone) =>
+      `🔔 *કામ મળ્યું!*\n\nBooking ID: ${bookingId}\n🌾 કામ: *${skill}*\n👤 ખેડૂત: *${farmerName}*\n📅 તારીખ: ${date}\n💰 મજૂરી: ₹${rate}/દિવસ\n📞 સંપર્ક: ${farmerPhone}\n\n_KissanLink_`,
+    hi: (bookingId, farmerName, skill, date, rate, farmerPhone) =>
+      `🔔 *काम मिला!*\n\nBooking ID: ${bookingId}\n🌾 काम: *${skill}*\n👤 किसान: *${farmerName}*\n📅 तारीख: ${date}\n💰 मजदूरी: ₹${rate}/दिन\n📞 संपर्क: ${farmerPhone}\n\n_KissanLink_`,
+    en: (bookingId, farmerName, skill, date, rate, farmerPhone) =>
+      `🔔 *Work Assigned!*\n\nBooking ID: ${bookingId}\n🌾 Work: *${skill}*\n👤 Farmer: *${farmerName}*\n📅 Date: ${date}\n💰 Wage: ₹${rate}/day\n📞 Contact: ${farmerPhone}\n\n_KissanLink_`,
+  },
+
+  // ── Cancellations ────────────────────────────────────────────────────────────
+
+  cancel_success_farmer: {
+    gu: (bookingId) => `✅ બુકિંગ રદ કરવામાં આવી છે: ${bookingId}`,
+    hi: (bookingId) => `✅ बुकिंग रद्द कर दी गई है: ${bookingId}`,
+    en: (bookingId) => `✅ Booking cancelled: ${bookingId}`,
+  },
+
+  cancel_notify_owner: {
+    gu: (type, date) => `❌ *બુકિંગ રદ*\n\nસાધન: ${type}\nતારીખ: ${date}\n\nખેડૂતે આ બુકિંગ રદ કરી છે.`,
+    hi: (type, date) => `❌ *बुकिंग रद्द*\n\nउपकरण: ${type}\nतारीख: ${date}\n\nकिसान ने यह बुकिंग रद्द कर दी है।`,
+    en: (type, date) => `❌ *Booking Cancelled*\n\nEquipment: ${type}\nDate: ${date}\n\nThe farmer has cancelled this booking.`,
+  },
+
+  cancel_notify_worker: {
+    gu: (farmerName, date) => `❌ *મજૂરી બુકિંગ રદ*\n\nખેડૂત: ${farmerName}\nતારીખ: ${date}\n\nઆ બુકિંગ રદ કરવામાં આવી છે.`,
+    hi: (farmerName, date) => `❌ *मजदूरी बुकिंग रद्द*\n\nकिसान: ${farmerName}\nतारीख: ${date}\n\nयह बुकिंग रद्द कर दी गई है।`,
+    en: (farmerName, date) => `❌ *Labour Booking Cancelled*\n\nFarmer: ${farmerName}\nDate: ${date}\n\nThe booking has been cancelled.`,
+  },
+
+  cancel_invalid_id: {
+    gu: `⚠️ અમાન્ય બુકિંગ ID. કૃપા કરીને તપાસો.`,
+    hi: `⚠️ अमान्य बुकिंग ID. कृपया जाँच करें।`,
+    en: `⚠️ Invalid Booking ID. Please check and try again.`,
+  },
+
+  cancel_already: {
+    gu: `⚠️ આ બુકિંગ પહેલેથી જ રદ છે.`,
+    hi: `⚠️ यह बुकिंग पहले से ही रद्द है।`,
+    en: `⚠️ This booking is already cancelled.`,
   },
 
   // ── Rating ───────────────────────────────────────────────────────────────────
@@ -236,23 +289,52 @@ const strings = {
 
   // ── Profile ──────────────────────────────────────────────────────────────────
 
+  profile_village_label: {
+    gu: "ગામ",
+    hi: "गांव",
+    en: "Village"
+  },
+
+  profile_roles_label: {
+    gu: "ભૂમિકા",
+    hi: "भूमिका",
+    en: "Roles"
+  },
+
+  role_farmer: {
+    gu: "ખેડૂત",
+    hi: "किसान",
+    en: "Farmer"
+  },
+
+  role_owner: {
+    gu: "સાધન માલિક",
+    hi: "उपकरण मालिक",
+    en: "Equipment Owner"
+  },
+
+  role_worker: {
+    gu: "મજૂર",
+    hi: "मज़दूर",
+    en: "Worker"
+  },
+
   profile_view: {
-    gu: (name, village, roles, rating, count) =>
-      `👤 *મારી પ્રોફાઇલ*\n\n📛 નામ: ${name}\n🏘️ ગામ: ${village}\n🎭 ભૂમિકા: ${roles}\n⭐ Rating: ${rating} (${count} reviews)\n\nશું બદલવું છે?`,
-    hi: (name, village, roles, rating, count) =>
-      `👤 *मेरी प्रोफाइल*\n\n📛 नाम: ${name}\n🏘️ गांव: ${village}\n🎭 भूमिका: ${roles}\n⭐ Rating: ${rating} (${count} reviews)\n\nक्या बदलना है?`,
-    en: (name, village, roles, rating, count) =>
-      `👤 *My Profile*\n\n📛 Name: ${name}\n🏘️ Village: ${village}\n🎭 Roles: ${roles}\n⭐ Rating: ${rating} (${count} reviews)\n\nWhat would you like to update?`,
+    gu: (name, village, language, roles) =>
+      `તમારી પ્રોફાઇલ:\nનામ: ${name}\nગામ: ${village}\nભાષા: ${language}\nભૂમિકા: ${roles}`,
+    hi: (name, village, language, roles) =>
+      `आपकी प्रोफाइल:\nनाम: ${name}\nगांव: ${village}\nभाषा: ${language}\nभूमिका: ${roles}`,
+    en: (name, village, language, roles) =>
+      `Your Profile:\nName: ${name}\nVillage: ${village}\nLanguage: ${language}\nRoles: ${roles}`,
   },
 
   profile_options: {
-    gu: ['✏️ નામ બદલો', '📍 લોકેશન અપડેટ કરો', '🌐 ભાષા બદલો', '🔙 મુખ્ય મેનૂ'],
-    hi: ['✏️ नाम बदलें', '📍 लोकेशन अपडेट करें', '🌐 भाषा बदलें', '🔙 मुख्य मेनू'],
-    en: ['✏️ Change Name', '📍 Update Location', '🌐 Change Language', '🔙 Main Menu'],
+    gu: ['નામ બદલો', 'લોકેશન અપડેટ કરો', 'ભાષા બદલો', 'ગામ બદલો'],
+    hi: ['नाम बदलें', 'लोकेशन अपडेट करें', 'भाषा बदलें', 'गांव बदलें'],
+    en: ['Edit Name', 'Edit Location', 'Edit Language', 'Edit Village'],
   },
 
-  // note: profile option 4 = back to main menu (handled in profile handler)
-  // type 0 at any point also returns to main menu
+  // note: type 0 at any point returns to main menu (global shortcut in bot.js)
 
   // ── Generic ──────────────────────────────────────────────────────────────────
 
@@ -305,6 +387,29 @@ const strings = {
     hi: `✅ भाषा हिंदी सेट हो गई.`,
     en: `✅ Language set to English.`,
   },
+
+  press_zero_hint: {
+    gu: "કોઈપણ સમયે 0 દબાવો = મુખ્ય મેનૂ",
+    hi: "कभी भी 0 दबाएं = मुख्य मेनू",
+    en: "Press 0 anytime = Main Menu"
+  },
+
+  // ── Global Navigation & UX ────────────────────────────────────────────────
+
+  // Shown when user has been inactive for 10 minutes
+  timeout_message: {
+    gu: `⏰ તમે 10 મિનિટથી inactive હતા. મુખ્ય મેનૂ પર પાછા ફર્યા.`,
+    hi: `⏰ आप 10 मिनट से inactive थे। मुख्य मेनू पर वापस आए।`,
+    en: `⏰ You've been inactive for 10 minutes. Returning to main menu.`,
+  },
+
+  // Shown when user types HELP (case-insensitive)
+  help_message: {
+    gu: `❓ *મદદ જોઈએ છે?*\n\n📞 Support: +91-XXXXXXXXXX\n📧 Email: support@kissanlink.in\n\n0 ટાઈપ કરો = મુખ્ય મેનૂ`,
+    hi: `❓ *मदद चाहिए?*\n\n📞 Support: +91-XXXXXXXXXX\n📧 Email: support@kissanlink.in\n\n0 दबाएं = मुख्य मेनू`,
+    en: `❓ *Need help?*\n\n📞 Support: +91-XXXXXXXXXX\n📧 Email: support@kissanlink.in\n\nType 0 = Main Menu`,
+  },
+
 };
 
 /**
