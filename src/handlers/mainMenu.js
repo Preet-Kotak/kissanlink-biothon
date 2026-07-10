@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const { t, strings } = require('../lang/strings');
 const { sendMessage, sendMenu } = require('../services/twilio');
+const { getQuickDateOptions, formatDateForDisplay } = require('../utils/dateUtils');
 
 /**
  * Show the main menu
@@ -18,21 +19,15 @@ async function handleMainMenu(user, body, lang) {
 
   switch (choice) {
     case 1: // Rent Equipment
-      await user.updateOne({ state: 'EQ_SEARCH_TYPE', tempData: {} });
-      await sendMenu(
-        user.phone,
-        t('ask_equipment_type', lang),
-        strings.equipment_types[lang]
-      );
+      await user.updateOne({ state: 'EQ_SEARCH_DATE', tempData: {} });
+      const eqDates = getQuickDateOptions();
+      await sendMessage(user.phone, t('eq_search_date_prompt', lang, formatDateForDisplay(eqDates.tomorrow), formatDateForDisplay(eqDates.inOneWeek)));
       break;
 
     case 2: // Find Labour
-      await user.updateOne({ state: 'LAB_SEARCH_SKILL', tempData: {} });
-      await sendMenu(
-        user.phone,
-        t('ask_labour_skill', lang),
-        strings.labour_skills[lang]
-      );
+      await user.updateOne({ state: 'LAB_SEARCH_DATE', tempData: {} });
+      const labDates = getQuickDateOptions();
+      await sendMessage(user.phone, t('lab_search_date_prompt', lang, formatDateForDisplay(labDates.tomorrow), formatDateForDisplay(labDates.inOneWeek)));
       break;
 
     case 3: // List My Equipment

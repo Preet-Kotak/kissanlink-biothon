@@ -1,152 +1,246 @@
-const User = require('../models/User');
-const LabourListing = require('../models/LabourListing');
 const Booking = require('../models/Booking');
+const LabourListing = require('../models/LabourListing');
+const User = require('../models/User');
+const { sendMessage } = require('../services/twilio');
 const { t, strings } = require('../lang/strings');
-const { sendMessage, sendMenu } = require('../services/twilio');
+const { parseDate, getQuickDateOptions, formatDateForDisplay } = require('../utils/dateUtils');
 const { showMainMenu } = require('./mainMenu');
-const { distanceKm, formatDistance, findNearbyLabour } = require('../services/location');
-const { parseDate, formatDate, dateFromTimestamp } = require('../utils/dateUtils');
 
 /**
- * Labour search + booking flow
- * States: LAB_SEARCH_SKILL → LAB_SEARCH_DATE → LAB_SEARCH_RESULTS → LAB_SEARCH_CONFIRM
+ * Helper: Calculate distance in KM using Haversine formula
+ */
+function calculateDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return (R * c).toFixed(1);
+}
+
+/**
+ * Core Algorithm: Smart Filter for Labour
+ */
+async function getAvailableLabourListings(skill, dateObj, coordinates) {
+  const targetDate = new Date(dateObj);
+  targetDate.setHours(0, 0, 0, 0);
+
+  // Step 1: Find conflicting bookings
+  const bookedListingIds = await Booking.find({
+    status: { $in: ['pending', 'confirmed'] },
+    $or: [
+      { bookingDate: targetDate },
+      { startDate: { $lte: targetDate }, endDate: { $gte: targetDate } }
+    ]
+  }).distinct('listingId');
+
+  // Step 2: Query LabourListing using Geospatial search
+  const baseQuery = {
+    skills: skill, 
+    available: true,
+    _id: { $nin: bookedListingIds },
+    blockedDates: { $ne: targetDate }
+  };
+
+  // Check 10km radius
+  let listings = await LabourListing.find({
+    ...baseQuery,
+    location: {
+      $near: {
+        $geometry: { type: 'Point', coordinates: coordinates },
+        $maxDistance: 10000 
+      }
+    }
+  }).limit(3).lean();
+
+  // Expand to 20km if empty
+  if (listings.length < 3) {
+    listings = await LabourListing.find({
+      ...baseQuery,
+      location: {
+        $near: {
+          $geometry: { type: 'Point', coordinates: coordinates },
+          $maxDistance: 20000 
+        }
+      }
+    }).limit(3).lean();
+  }
+
+  return listings;
+}
+
+/**
+ * Main Router for Labour Search States
  */
 async function handleLabourSearch(user, body, location, lang) {
+  const state = user.state;
+  const text = body.trim();
 
-  switch (user.state) {
-
-    // ── Pick skill needed ─────────────────────────────────────────────────────
-    case 'LAB_SEARCH_SKILL': {
-      const choice = parseInt(body);
-      if (choice === 6) { await user.updateOne({ state: 'MAIN_MENU', tempData: {} }); return showMainMenu(user, lang); }
-      if (!choice || choice < 1 || choice > strings.labour_skills_raw.length) {
-        await sendMenu(user.phone, t('ask_labour_skill', lang), strings.labour_skills[lang]);
-        break;
+  try {
+    // ── STATE: INITIAL DATE PROMPT ──────────────────────────────────────────
+    if (state === 'LAB_SEARCH_DATE') {
+      const { tomorrow, inOneWeek } = getQuickDateOptions();
+      
+      if (text === '1') {
+        await user.updateOne({ state: 'LAB_SEARCH_SKILL', 'tempData.bookingDate': tomorrow });
+        return sendLabourSkillPrompt(user.phone, lang);
+      } 
+      if (text === '2') {
+        await user.updateOne({ state: 'LAB_SEARCH_SKILL', 'tempData.bookingDate': inOneWeek });
+        return sendLabourSkillPrompt(user.phone, lang);
+      } 
+      if (text === '3') {
+        await user.updateOne({ state: 'LAB_SEARCH_DATE_CUSTOM' });
+        return sendMessage(user.phone, t('lab_search_date_custom_prompt', lang) + t('back_hint', lang));
       }
-      const skill = strings.labour_skills_raw[choice - 1];
-      const skillLabel = strings.labour_skills[lang][choice - 1];
-      await user.updateOne({ state: 'LAB_SEARCH_DATE', tempData: { skill, skillLabel } });
-      await sendMessage(user.phone, t('ask_booking_date', lang) + '\n' + t('back_hint', lang));
-      break;
+
+      const prompt = t('lab_search_date_prompt', lang, formatDateForDisplay(tomorrow), formatDateForDisplay(inOneWeek));
+      return sendMessage(user.phone, t('invalid_input', lang) + '\n\n' + prompt);
     }
 
-    // ── Enter booking date ────────────────────────────────────────────────────
-    case 'LAB_SEARCH_DATE': {
-      const date = parseDate(body.trim());
-      if (!date) {
-        await sendMessage(user.phone, t('invalid_date', lang));
-        break;
-      }
-      const { skill, skillLabel } = user.tempData;
-      await user.updateOne({ $set: { 'tempData.bookingDate': date.getTime(), state: 'LAB_SEARCH_RESULTS' } });
-
-      // Find nearby workers — 10km first, fallback to 20km
-      const { listings: workers, radiusKm } = await findNearbyLabour(user.location.coordinates, skill);
-
-      if (workers.length === 0) {
-        const noFound = t('no_labour_found', lang).replace('{skill}', skillLabel);
-        await sendMessage(user.phone, noFound);
-        await showMainMenu(user, lang);
-        break;
+    // ── STATE: CUSTOM DATE INPUT ─────────────────────────────────────────────
+    if (state === 'LAB_SEARCH_DATE_CUSTOM') {
+      const parsed = parseDate(text, 30);
+      
+      if (!parsed.valid) {
+        let errorMsg = t('date_invalid_format', lang);
+        if (parsed.reason === 'PAST_DATE') errorMsg = t('date_in_past', lang);
+        if (parsed.reason === 'TOO_FAR_AHEAD') errorMsg = t('date_too_far_ahead', lang);
+        
+        return sendMessage(user.phone, errorMsg + '\n\n' + t('lab_search_date_custom_prompt', lang) + t('back_hint', lang));
       }
 
-      const userCoords = user.location.coordinates;
-      let msg = t('labour_results_header', lang, skillLabel, radiusKm) + '\n\n';
-      workers.forEach((w, i) => {
-        const dist = formatDistance(distanceKm(userCoords, w.location.coordinates));
-        const rating = w.ratingCount > 0 ? `${w.rating.toFixed(1)}⭐` : '—';
-        msg += t('labour_card', lang, i + 1, w.workerName, w.village || '—', w.dailyRate, rating, dist);
-        msg += '\n\n';
-      });
-
-      const listingIds = workers.map((w) => w._id.toString());
-      await user.updateOne({
-        $set: {
-          state: 'LAB_SEARCH_CONFIRM',
-          'tempData.listingIds': listingIds,
-        },
-      });
-
-      msg += t('ask_select_listing', lang);
-      await sendMessage(user.phone, msg);
-      break;
+      await user.updateOne({ state: 'LAB_SEARCH_SKILL', 'tempData.bookingDate': parsed.date });
+      return sendLabourSkillPrompt(user.phone, lang);
     }
 
-    // ── Confirm booking ───────────────────────────────────────────────────────
-    case 'LAB_SEARCH_CONFIRM': {
-      const choice = parseInt(body);
-      const listingIds = user.tempData.listingIds || [];
+    // ── STATE: SKILL SELECTION & SMART FILTER EXECUTION ───────────────────────
+    if (state === 'LAB_SEARCH_SKILL') {
+      const skillIndex = parseInt(text, 10) - 1;
+      const skillsRaw = strings.labour_skills_raw;
 
-      if (!choice || choice < 1 || choice > listingIds.length) {
-        await sendMessage(user.phone, t('invalid_input', lang));
-        break;
+      if (isNaN(skillIndex) || skillIndex < 0 || skillIndex >= skillsRaw.length) {
+        return sendLabourSkillPrompt(user.phone, lang, true);
       }
 
-      const listing = await LabourListing.findById(listingIds[choice - 1]);
-      if (!listing) {
-        await sendMessage(user.phone, t('invalid_input', lang));
-        break;
+      const selectedSkill = skillsRaw[skillIndex];
+      const targetDate = new Date(user.tempData.bookingDate);
+      
+      const listings = await getAvailableLabourListings(selectedSkill, targetDate, user.location.coordinates);
+
+      if (listings.length === 0) {
+        await sendMessage(user.phone, t('no_listings_found', lang));
+        await user.updateOne({ state: 'MAIN_MENU', tempData: {} });
+        return showMainMenu(user, lang);
       }
 
-      // Re-fetch user to get latest tempData from DB
-      const freshUser = await User.findOne({ phone: user.phone });
-      const bookingDate = dateFromTimestamp(freshUser.tempData?.bookingDate);
-      if (!bookingDate) {
-        await user.updateOne({ state: 'LAB_SEARCH_SKILL', tempData: {} });
-        await sendMessage(user.phone, t('invalid_input', lang));
-        await showMainMenu(user, lang);
-        break;
+      let resultText = t('lab_search_results_header', lang) + '\n\n';
+      const savedResults = [];
+
+      listings.forEach((listing, index) => {
+        const dist = calculateDistance(
+          user.location.coordinates[1], user.location.coordinates[0],
+          listing.location.coordinates[1], listing.location.coordinates[0]
+        );
+        const rating = listing.rating ? listing.rating.toFixed(1) : 'New';
+        
+        resultText += t('labour_card', lang, index + 1, listing.workerName, listing.village || 'Nearby', listing.dailyRate, rating, dist + 'km') + '\n\n';
+        savedResults.push(listing._id.toString());
+      });
+
+      resultText += t('lab_search_results_footer', lang);
+
+      await user.updateOne({ 
+        state: 'LAB_SEARCH_RESULTS', 
+        'tempData.searchResults': savedResults,
+        'tempData.selectedSkill': selectedSkill
+      });
+
+      return sendMessage(user.phone, resultText);
+    }
+
+    // ── STATE: BOOKING CONFIRMATION & HANDSHAKE ──────────────────────────────
+    if (state === 'LAB_SEARCH_RESULTS') {
+      const choiceIndex = parseInt(text, 10) - 1;
+      const savedResults = user.tempData.searchResults || [];
+
+      if (isNaN(choiceIndex) || choiceIndex < 0 || choiceIndex >= savedResults.length) {
+        return sendMessage(user.phone, t('invalid_number', lang));
       }
 
+      const selectedListingId = savedResults[choiceIndex];
+      const targetDate = new Date(user.tempData.bookingDate);
+
+      // Race Condition Check
+      const isStillAvailable = await getAvailableLabourListings(user.tempData.selectedSkill, targetDate, user.location.coordinates);
+      if (!isStillAvailable.find(l => l._id.toString() === selectedListingId)) {
+        return sendMessage(user.phone, t('listing_just_booked', lang));
+      }
+
+      const listing = await LabourListing.findById(selectedListingId);
       const worker = await User.findById(listing.workerId);
-      const skillLabel = freshUser.tempData.skillLabel;
 
-      await Booking.create({
+      // 1. Create Pending Booking
+      const booking = await Booking.create({
         type: 'labour',
         listingId: listing._id,
         farmerId: user._id,
         farmerPhone: user.phone,
-        farmerName: user.name,
-        providerId: listing.workerId,
-        providerPhone: listing.workerPhone,
-        providerName: listing.workerName,
-        bookingDate,
-        status: 'confirmed',
+        farmerName: user.name || 'Farmer',
+        providerId: worker._id,
+        providerPhone: worker.phone,
+        providerName: worker.name || 'Worker',
+        bookingDate: targetDate,
+        startDate: targetDate,
+        endDate: targetDate,
+        rate: listing.dailyRate,
+        itemName: listing.skills.join(', '),
+        status: 'pending'
       });
 
-      const workerDisplayPhone = listing.workerPhone.replace('whatsapp:', '');
-      const dateStr = formatDate(bookingDate);
+      // 2. Notify Farmer immediately
+      await sendMessage(user.phone, t('lab_booking_created_farmer', lang, worker.name || 'the worker', worker.phone));
 
-      // Confirm to farmer
-      await sendMessage(
-        user.phone,
-        t('booking_confirm_labour', lang, listing.workerName, skillLabel, dateStr, listing.dailyRate, workerDisplayPhone)
-      );
+      // 3. Notify Worker and set state to await response
+      const workerLang = worker.language || 'gu';
+      const dateStr = formatDateForDisplay(targetDate);
+      
+      await sendMessage(worker.phone, t('lab_booking_request_provider', workerLang, user.name || 'A farmer', user.phone, user.tempData.selectedSkill, dateStr, listing.dailyRate));
+      
+      await worker.updateOne({
+        state: 'AWAITING_BOOKING_RESPONSE',
+        'tempData.pendingBookingId': booking._id
+      });
 
-      // Notify worker
-      const workerLang = worker?.language || 'gu';
-      const farmerDisplayPhone = user.phone.replace('whatsapp:', '');
-      await sendMessage(
-        listing.workerPhone,
-        t('notify_worker_labour', workerLang, user.name, skillLabel, dateStr, listing.dailyRate, farmerDisplayPhone)
-      );
-
+      // 4. Reset Farmer
       await user.updateOne({ state: 'MAIN_MENU', tempData: {} });
-      await showMainMenu(user, lang);
-      break;
+      return showMainMenu(user, lang);
     }
 
-    // LAB_SEARCH_RESULTS is a transient state — same handling as date entry
-    case 'LAB_SEARCH_RESULTS': {
-      // User may be retrying after no results were found — go to date step
-      await user.updateOne({ state: 'LAB_SEARCH_DATE' });
-      await handleLabourSearch(user, body, location, lang);
-      break;
-    }
-
-    default:
-      await showMainMenu(user, lang);
+  } catch (err) {
+    console.error('[LabourSearch] Error:', err);
+    await sendMessage(user.phone, t('system_error', lang));
+    await user.updateOne({ state: 'MAIN_MENU', tempData: {} });
+    return showMainMenu(user, lang);
   }
 }
 
-module.exports = { handleLabourSearch };
+/**
+ * Reusable helper to send the Labour Skill menu
+ */
+async function sendLabourSkillPrompt(phone, lang, isError = false) {
+  const skills = t('labour_skills', lang);
+  let msg = isError ? t('invalid_input', lang) + '\n\n' : '';
+  msg += t('ask_labour_skill', lang) + '\n';
+  
+  skills.forEach((skill, index) => {
+    msg += `\n${index + 1}. ${skill}`;
+  });
+  
+  msg += '\n\n' + t('back_hint', lang);
+  return sendMessage(phone, msg);
+}
+
+module.exports = { handleLabourSearch, sendLabourSkillPrompt, getAvailableLabourListings };
