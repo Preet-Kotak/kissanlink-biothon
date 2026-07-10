@@ -23,13 +23,13 @@ async function handleLabourList(user, body, location, lang) {
       const valid = raw.filter((n) => n >= 1 && n <= strings.labour_skills_raw.length);
 
       if (valid.length === 0) {
-        await sendMenu(user.phone, t('ask_worker_skill', lang), strings.labour_skills[lang]);
+        await sendMenu(user.phone, t('ask_worker_skill', lang), strings.labour_skills[lang], lang);
         break;
       }
 
       const skills = valid.map((n) => strings.labour_skills_raw[n - 1]);
       await user.updateOne({ state: 'LAB_LIST_RATE', tempData: { skills } });
-      await sendMessage(user.phone, t('ask_worker_daily_rate', lang) + '\n' + t('back_hint', lang));
+      await sendMessage(user.phone, t('ask_worker_daily_rate', lang), lang);
       break;
     }
 
@@ -37,14 +37,11 @@ async function handleLabourList(user, body, location, lang) {
     case 'LAB_LIST_RATE': {
       const rate = parseInt(body.trim());
       if (isNaN(rate) || rate < 1) {
-        await sendMessage(user.phone, t('invalid_number', lang));
+        await sendMessage(user.phone, t('invalid_number', lang), lang);
         break;
       }
 
       const skills = user.tempData.skills;
-
-      // Add worker role if not present
-      const roles = user.roles.includes('worker') ? user.roles : [...user.roles, 'worker'];
 
       // Update or create listing
       const existing = await LabourListing.findOne({ workerId: user._id });
@@ -63,8 +60,13 @@ async function handleLabourList(user, body, location, lang) {
         });
       }
 
-      await user.updateOne({ roles, state: 'MAIN_MENU', tempData: {} });
-      await sendMessage(user.phone, t('worker_listed', lang, user.name));
+      // Use $addToSet so MongoDB guarantees no duplicate roles
+      await user.updateOne({
+        $addToSet: { roles: 'worker' },
+        $set: { state: 'MAIN_MENU', tempData: {} },
+      });
+
+      await sendMessage(user.phone, t('worker_listed', lang, user.name), lang);
       await showMainMenu(user, lang);
       break;
     }

@@ -13,7 +13,7 @@ async function handleRating(user, body, lang) {
   const rating = parseInt(body.trim());
 
   if (isNaN(rating) || rating < 1 || rating > 5) {
-    await sendMessage(user.phone, t('rating_prompt', lang, '—', '—'));
+    await sendMessage(user.phone, t('rating_prompt', lang, '—', '—'), lang);
     return;
   }
 
@@ -91,7 +91,7 @@ async function handleRating(user, body, lang) {
     await updateUserRating(booking.farmerId, rating);
   }
 
-  await sendMessage(user.phone, t('rating_saved', lang, rating));
+  await sendMessage(user.phone, t('rating_saved', lang, rating), lang);
   await user.updateOne({ state: 'MAIN_MENU', tempData: {} });
   await showMainMenu(user, lang);
 }
@@ -144,7 +144,8 @@ async function processCompletedBookings() {
       });
       await sendMessage(
         farmer.phone,
-        t('rating_prompt', farmer.language || 'gu', provider?.name || '—', bookingLabel)
+        t('rating_prompt', farmer.language || 'gu', provider?.name || '—', bookingLabel),
+        farmer.language || 'gu'
       );
     }
 
@@ -159,7 +160,8 @@ async function processCompletedBookings() {
       });
       await sendMessage(
         provider.phone,
-        t('rating_prompt', provider.language || 'gu', farmer?.name || '—', bookingLabel)
+        t('rating_prompt', provider.language || 'gu', farmer?.name || '—', bookingLabel),
+        provider.language || 'gu'
       );
     }
 

@@ -1,8 +1,10 @@
 const User = require('../models/User');
-const { t, strings } = require('../lang/strings');
-const { sendMessage, sendMenu } = require('../services/twilio');
+const Booking = require('../models/Booking');
+const { t } = require('../lang/strings');
+const { sendMessage } = require('../services/twilio');
+const { formatDate } = require('../utils/dateUtils');
 const { handleOnboarding } = require('./onboarding');
-const { handleMainMenu } = require('./mainMenu');
+const { handleMainMenu, showMainMenu } = require('./mainMenu');
 const { handleEquipmentSearch } = require('./equipmentSearch');
 const { handleEquipmentList } = require('./equipmentList');
 const { handleLabourSearch } = require('./labourSearch');
@@ -41,25 +43,147 @@ function logError(context, error, user) {
 }
 
 /**
- * Central message dispatcher — routes to the right handler based on user state
+ * Central message dispatcher
  */
 async function handleMessage(user, body, location) {
+
   const lang = user.language || 'gu';
   const state = user.state;
+  const now = new Date();
+
+  // ------------------------------------------------------------------
+  // 1. Inactivity Timeout (10 minutes)
+  // ------------------------------------------------------------------
+
+  const lastActivity = user.lastMessageAt || user.updatedAt || now;
+  const inactiveMinutes = (now - lastActivity) / 1000 / 60;
+
+  if (
+    user.isRegistered &&
+    state !== 'MAIN_MENU' &&
+    inactiveMinutes >= 10
+  ) {
+
+    await user.updateOne({
+      state: 'MAIN_MENU',
+      tempData: {},
+      lastMessageAt: now,
+    });
+
+    const updated = await User.findById(user._id);
+
+    await sendMessage(
+      updated.phone,
+      t('timeout_message', lang),
+      lang
+    );
+
+    return showMainMenu(updated, lang);
+  }
+
+  // ------------------------------------------------------------------
+  // 2. Global Main Menu Shortcut
+  // ------------------------------------------------------------------
+
+  if (user.isRegistered && body.trim() === '0') {
+
+    await user.updateOne({
+      state: 'MAIN_MENU',
+      tempData: {},
+      lastMessageAt: now,
+    });
+
+    const updated = await User.findById(user._id);
+
+    return showMainMenu(updated, lang);
+  }
+
+  // ------------------------------------------------------------------
+  // 3. Global HELP Command
+  // ------------------------------------------------------------------
+
+  if (
+    user.isRegistered &&
+    body.trim().toUpperCase() === 'HELP'
+  ) {
+
+    await user.updateOne({
+      state: 'MAIN_MENU',
+      tempData: {},
+      lastMessageAt: now,
+    });
+
+    const updated = await User.findById(user._id);
+
+    await sendMessage(
+      updated.phone,
+      t('help_message', lang),
+      lang
+    );
+
+    return showMainMenu(updated, lang);
+  }
+
+  // ------------------------------------------------------------------
+  // 3.5 Global CANCEL Command
+  // ------------------------------------------------------------------
+
+  const textBody = body.trim().toUpperCase();
+  if (user.isRegistered && textBody.startsWith('CANCEL BK-')) {
+    const bookingId = textBody.split(' ')[1];
+    
+    const booking = await Booking.findOne({ bookingId });
+    if (!booking || booking.farmerId.toString() !== user._id.toString()) {
+      await sendMessage(user.phone, t('cancel_invalid_id', lang), lang);
+      return;
+    }
+    
+    if (booking.status === 'cancelled') {
+      await sendMessage(user.phone, t('cancel_already', lang), lang);
+      return;
+    }
+    
+    await booking.updateOne({ status: 'cancelled' });
+    
+    await sendMessage(user.phone, t('cancel_success_farmer', lang, booking.bookingId), lang);
+    
+    const dateStr = formatDate(booking.bookingDate);
+    const provider = await User.findById(booking.providerId);
+    const providerLang = provider?.language || 'gu';
+    
+    if (booking.type === 'equipment') {
+      const EquipmentListing = require('../models/EquipmentListing');
+      const listing = await EquipmentListing.findById(booking.listingId);
+      if (listing) await listing.updateOne({ available: true });
+      const typeStr = listing ? listing.type : '—';
+      await sendMessage(booking.providerPhone, t('cancel_notify_owner', providerLang, typeStr, dateStr), providerLang);
+    } else {
+      const LabourListing = require('../models/LabourListing');
+      const listing = await LabourListing.findById(booking.listingId);
+      if (listing) await listing.updateOne({ available: true });
+      await sendMessage(booking.providerPhone, t('cancel_notify_worker', providerLang, user.name, dateStr), providerLang);
+    }
+    
+    const updated = await User.findById(user._id);
+    return showMainMenu(updated, lang);
+  }
+
+  // ------------------------------------------------------------------
+  // 4. Update last activity
+  // ------------------------------------------------------------------
+
+  await user.updateOne({
+    lastMessageAt: now,
+  });
+
+  // ------------------------------------------------------------------
+  // 5. Rating Priority
+  // ------------------------------------------------------------------
 
   try {
     // ── Rating prompt takes priority over everything ──────────────────────────
     if (state === 'AWAITING_RATING') {
       return handleRating(user, body, lang);
-    }
-
-    // ── Global "0" = back to main menu (works from any state) ─────────────────
-    if (user.isRegistered && body.trim() === '0') {
-      logStateTransition(user, state, 'MAIN_MENU', {});
-      await user.updateOne({ state: 'MAIN_MENU', tempData: {} });
-      const fresh = await require('../models/User').findOne({ phone: user.phone });
-      const { showMainMenu } = require('./mainMenu');
-      return showMainMenu(fresh, lang);
     }
 
     // ── TASK 1: Two-Sided Booking Handshake ───────────────────────────────────
@@ -68,7 +192,7 @@ async function handleMessage(user, body, location) {
     }
 
     // ── Onboarding states ─────────────────────────────────────────────────────
-    if (!user.isRegistered || ['NEW', 'AWAITING_LANGUAGE', 'AWAITING_NAME', 'AWAITING_LOCATION'].includes(state)) {
+    if (!user.isRegistered || ['NEW', 'AWAITING_LANGUAGE', 'AWAITING_NAME', 'AWAITING_LOCATION', 'AWAITING_VILLAGE'].includes(state)) {
       return handleOnboarding(user, body, location, lang);
     }
 

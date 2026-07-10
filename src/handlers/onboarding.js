@@ -4,87 +4,237 @@ const { sendMessage, sendMenu } = require('../services/twilio');
 const { showMainMenu } = require('./mainMenu');
 
 /**
- * Handles: NEW → AWAITING_LANGUAGE → AWAITING_NAME → AWAITING_LOCATION → registered
+ * Handles:
+ * NEW
+ * ↓
+ * LANGUAGE
+ * ↓
+ * NAME
+ * ↓
+ * LOCATION
+ * ↓
+ * VILLAGE
+ * ↓
+ * REGISTER
  */
+
 async function handleOnboarding(user, body, location, lang) {
+
   const phone = user.phone;
 
   switch (user.state) {
 
-    // ── Step 0: Brand new user — show welcome + language picker ───────────────
+    // ---------------------------------------------------------
+    // NEW USER
+    // ---------------------------------------------------------
+
     case 'NEW': {
-      await user.updateOne({ state: 'AWAITING_LANGUAGE' });
+
+      await user.updateOne({
+        state: 'AWAITING_LANGUAGE',
+      });
+
       await sendMenu(
         phone,
-        t('welcome_new', 'en'), // show welcome in English so they understand the choice
+        t('welcome_new', 'en'),
         strings.language_options
       );
+
       break;
     }
 
-    // ── Step 1: Language selected ─────────────────────────────────────────────
+    // ---------------------------------------------------------
+    // LANGUAGE
+    // ---------------------------------------------------------
+
     case 'AWAITING_LANGUAGE': {
+
       const choice = parseInt(body);
-      const langMap = { 1: 'gu', 2: 'hi', 3: 'en' };
+
+      const langMap = {
+        1: 'gu',
+        2: 'hi',
+        3: 'en',
+      };
+
       const chosen = langMap[choice];
 
       if (!chosen) {
+
         await sendMenu(
           phone,
           t('welcome_new', 'en'),
           strings.language_options
         );
+
         break;
       }
-
-      await user.updateOne({ language: chosen, state: 'AWAITING_NAME' });
-      await sendMessage(phone, t('ask_name', chosen));
-      break;
-    }
-
-    // ── Step 2: Name entered ──────────────────────────────────────────────────
-    case 'AWAITING_NAME': {
-      const name = body.trim();
-      if (!name || name.length < 2) {
-        await sendMessage(phone, t('ask_name', lang));
-        break;
-      }
-
-      await user.updateOne({ name, state: 'AWAITING_LOCATION' });
-      await sendMessage(phone, t('ask_location', lang));
-      break;
-    }
-
-    // ── Step 3: Location shared ───────────────────────────────────────────────
-    case 'AWAITING_LOCATION': {
-      if (!location.latitude || !location.longitude) {
-        await sendMessage(phone, t('ask_location', lang));
-        break;
-      }
-
-      const lat = parseFloat(location.latitude);
-      const lng = parseFloat(location.longitude);
 
       await user.updateOne({
-        'location.coordinates': [lng, lat],
-        isRegistered: true,
-        state: 'MAIN_MENU',
+        language: chosen,
+        state: 'AWAITING_NAME',
       });
 
-      // Re-fetch with updated name
-      const updated = await User.findOne({ phone });
-      await sendMessage(phone, t('registration_done', lang, updated.name));
-      await showMainMenu(updated, lang);
+      // Consent Notice
+      await sendMessage(
+        phone,
+        t('welcome_with_consent', chosen),
+        chosen
+      );
+
+      await sendMessage(
+        phone,
+        t('ask_name', chosen),
+        chosen
+      );
+
       break;
+    }
+
+    // ---------------------------------------------------------
+    // NAME
+    // ---------------------------------------------------------
+
+    case 'AWAITING_NAME': {
+
+      const name = body.trim();
+
+      if (!name || name.length < 2) {
+
+        await sendMessage(
+          phone,
+          t('ask_name', lang),
+          lang
+        );
+
+        break;
+      }
+
+      await user.updateOne({
+
+        name,
+
+        state: 'AWAITING_LOCATION',
+
+      });
+
+      await sendMessage(
+        phone,
+        t('ask_location', lang),
+        lang
+      );
+
+      break;
+    }
+
+    // ---------------------------------------------------------
+    // LOCATION
+    // ---------------------------------------------------------
+
+    case 'AWAITING_LOCATION': {
+
+      if (
+        !location ||
+        !location.latitude ||
+        !location.longitude
+      ) {
+
+        await sendMessage(
+          phone,
+          t('ask_location', lang),
+          lang
+        );
+
+        break;
+      }
+
+      const lat = Number(location.latitude);
+      const lng = Number(location.longitude);
+
+      await user.updateOne({
+
+        'location.coordinates': [lng, lat],
+
+        state: 'AWAITING_VILLAGE',
+
+      });
+
+      await sendMessage(
+        phone,
+        t('village_prompt', lang),
+        lang
+      );
+
+      break;
+    }
+
+    // ---------------------------------------------------------
+    // VILLAGE
+    // ---------------------------------------------------------
+
+    case 'AWAITING_VILLAGE': {
+
+      const village = body.trim();
+
+      if (village.length < 2) {
+
+        await sendMessage(
+          phone,
+          t('village_prompt', lang),
+          lang
+        );
+
+        break;
+      }
+
+      await user.updateOne({
+
+        village,
+
+        isRegistered: true,
+
+        state: 'MAIN_MENU',
+
+      });
+
+      const updated = await User.findById(user._id);
+
+      await sendMessage(
+
+        phone,
+
+        t(
+          'registration_done',
+          lang,
+          updated.name
+        ),
+
+        lang
+
+      );
+
+      return showMainMenu(updated, lang);
     }
 
     default: {
-      // Shouldn't happen — reset to main menu
-      await user.updateOne({ state: 'MAIN_MENU' });
-      const updated = await User.findOne({ phone: user.phone });
-      await showMainMenu(updated, lang);
+
+      await user.updateOne({
+
+        state: 'MAIN_MENU',
+
+      });
+
+      const updated = await User.findById(user._id);
+
+      return showMainMenu(updated, lang);
     }
+
   }
+
 }
 
-module.exports = { handleOnboarding };
+module.exports = {
+
+  handleOnboarding,
+
+};

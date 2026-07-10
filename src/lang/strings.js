@@ -447,18 +447,30 @@ const strings = {
   // ── Profile ──────────────────────────────────────────────────────────────────
 
   profile_view: {
-    gu: (name, village, roles, rating, count) =>
-      `👤 *મારી પ્રોફાઇલ*\n\n📛 નામ: ${name}\n🏘️ ગામ: ${village}\n🎭 ભૂમિકા: ${roles}\n⭐ Rating: ${rating} (${count} reviews)\n\nશું બદલવું છે?`,
-    hi: (name, village, roles, rating, count) =>
-      `👤 *मेरी प्रोफाइल*\n\n📛 नाम: ${name}\n🏘️ गांव: ${village}\n🎭 भूमिका: ${roles}\n⭐ Rating: ${rating} (${count} reviews)\n\nक्या बदलना है?`,
-    en: (name, village, roles, rating, count) =>
-      `👤 *My Profile*\n\n📛 Name: ${name}\n🏘️ Village: ${village}\n🎭 Roles: ${roles}\n⭐ Rating: ${rating} (${count} reviews)\n\nWhat would you like to update?`,
+    gu: (name, village, languageDisplay, roles) =>
+      `👤 *મારી પ્રોફાઇલ*\n\n📛 નામ: ${name}\n🏘️ ગામ: ${village}\n🌐 ભાષા: ${languageDisplay}\n🎭 ભૂમિકા: ${roles}\n\nશું બદલવું છે?`,
+    hi: (name, village, languageDisplay, roles) =>
+      `👤 *मेरी प्रोफाइल*\n\n📛 नाम: ${name}\n🏘️ गांव: ${village}\n🌐 भाषा: ${languageDisplay}\n🎭 भूमिका: ${roles}\n\nक्या बदलना है?`,
+    en: (name, village, languageDisplay, roles) =>
+      `👤 *My Profile*\n\n📛 Name: ${name}\n🏘️ Village: ${village}\n🌐 Language: ${languageDisplay}\n🎭 Roles: ${roles}\n\nWhat would you like to update?`,
   },
 
   profile_options: {
-    gu: ['✏️ નામ બદલો', '📍 લોકેશન અપડેટ કરો', '🌐 ભાષા બદલો', '🔙 મુખ્ય મેનૂ'],
-    hi: ['✏️ नाम बदलें', '📍 लोकेशन अपडेट करें', '🌐 भाषा बदलें', '🔙 मुख्य मेनू'],
-    en: ['✏️ Change Name', '📍 Update Location', '🌐 Change Language', '🔙 Main Menu'],
+    gu: ['✏️ નામ બદલો', '📍 લોકેશન અપડેટ કરો', '🌐 ભાષા બદલો', '🏘️ ગામ બદલો', '🔙 મુખ્ય મેનૂ'],
+    hi: ['✏️ नाम बदलें', '📍 लोकेशन अपडेट करें', '🌐 भाषा बदलें', '🏘️ गांव बदलें', '🔙 मुख्य मेनू'],
+    en: ['✏️ Change Name', '📍 Update Location', '🌐 Change Language', '🏘️ Change Village', '🔙 Main Menu'],
+  },
+
+  village_prompt: {
+    gu: `તમારા ગામનું નામ શું છે?`,
+    hi: `आपके गांव का नाम क्या है?`,
+    en: `What is your village name?`,
+  },
+
+  village_updated: {
+    gu: (village) => `✅ ગામ અપડેટ થયું: ${village}`,
+    hi: (village) => `✅ गांव अपडेट हुआ: ${village}`,
+    en: (village) => `✅ Village updated: ${village}`,
   },
 
   // ── Generic ──────────────────────────────────────────────────────────────────

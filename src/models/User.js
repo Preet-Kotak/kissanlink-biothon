@@ -8,14 +8,17 @@ const userSchema = new mongoose.Schema(
       unique: true,
       // Stored as "whatsapp:+91XXXXXXXXXX"
     },
+
     name: {
       type: String,
       default: null,
     },
+
     village: {
       type: String,
       default: null,
     },
+
     location: {
       type: {
         type: String,
@@ -28,38 +31,51 @@ const userSchema = new mongoose.Schema(
         default: [0, 0],
       },
     },
+
     // A user can be farmer, owner, worker — or all three
     roles: {
       type: [String],
       enum: ['farmer', 'owner', 'worker'],
       default: ['farmer'],
     },
+
     language: {
       type: String,
       enum: ['gu', 'hi', 'en'],
       default: 'gu',
     },
+
     rating: {
       type: Number,
       default: 0,
     },
+
     ratingCount: {
       type: Number,
       default: 0,
     },
+
     // Conversation state machine
     state: {
       type: String,
-      default: 'NEW', // NEW, AWAITING_NAME, AWAITING_LOCATION, MAIN_MENU, etc.
+      default: 'NEW',
     },
-    // Temp data stored across conversation turns
+
+    // Temporary data between conversation steps
     tempData: {
       type: mongoose.Schema.Types.Mixed,
       default: {},
     },
+
     isRegistered: {
       type: Boolean,
       default: false,
+    },
+
+    // Track user's last interaction for inactivity timeout
+    lastMessageAt: {
+      type: Date,
+      default: Date.now,
     },
   },
   { timestamps: true }

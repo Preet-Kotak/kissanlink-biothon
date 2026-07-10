@@ -17,12 +17,12 @@ async function handleEquipmentList(user, body, location, lang) {
       const choice = parseInt(body);
       if (choice === 6) { await user.updateOne({ state: 'MAIN_MENU', tempData: {} }); return showMainMenu(user, lang); }
       if (!choice || choice < 1 || choice > strings.equipment_types_raw.length) {
-        await sendMenu(user.phone, t('ask_list_equipment_type', lang), strings.equipment_types[lang]);
+        await sendMenu(user.phone, t('ask_list_equipment_type', lang), strings.equipment_types[lang], lang);
         break;
       }
       const eqType = strings.equipment_types_raw[choice - 1];
       await user.updateOne({ state: 'EQ_LIST_RATE', tempData: { eqType } });
-      await sendMessage(user.phone, t('ask_daily_rate', lang) + '\n' + t('back_hint', lang));
+      await sendMessage(user.phone, t('ask_daily_rate', lang), lang);
       break;
     }
 
@@ -30,14 +30,11 @@ async function handleEquipmentList(user, body, location, lang) {
     case 'EQ_LIST_RATE': {
       const rate = parseInt(body.trim());
       if (isNaN(rate) || rate < 1) {
-        await sendMessage(user.phone, t('invalid_number', lang));
+        await sendMessage(user.phone, t('invalid_number', lang), lang);
         break;
       }
 
       const eqType = user.tempData.eqType;
-
-      // Add owner role if not present
-      const roles = user.roles.includes('owner') ? user.roles : [...user.roles, 'owner'];
 
       // Check if listing already exists for this owner + type, update if so
       const existing = await EquipmentListing.findOne({ ownerId: user._id, type: eqType });
@@ -56,8 +53,13 @@ async function handleEquipmentList(user, body, location, lang) {
         });
       }
 
-      await user.updateOne({ roles, state: 'MAIN_MENU', tempData: {} });
-      await sendMessage(user.phone, t('listing_created', lang, eqType, rate));
+      // Use $addToSet so MongoDB guarantees no duplicate roles
+      await user.updateOne({
+        $addToSet: { roles: 'owner' },
+        $set: { state: 'MAIN_MENU', tempData: {} },
+      });
+
+      await sendMessage(user.phone, t('listing_created', lang, eqType, rate), lang);
       await showMainMenu(user, lang);
       break;
     }

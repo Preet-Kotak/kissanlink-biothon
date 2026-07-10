@@ -2,6 +2,11 @@ const mongoose = require('mongoose');
 
 const bookingSchema = new mongoose.Schema(
   {
+    bookingId: {
+      type: String,
+      unique: true,
+      default: () => 'BK-' + Math.random().toString(36).substring(2, 8).toUpperCase(),
+    },
     type: {
       type: String,
       enum: ['equipment', 'labour'],
