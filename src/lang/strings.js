@@ -337,6 +337,91 @@ const strings = {
     hi: `✅ भाषा हिंदी सेट हो गई.`,
     en: `✅ Language set to English.`,
   },
+
+  //  --- photo Upload
+  ask_PhotoUrl: {
+    gu: "શું તમારી પાસે સાધનનો ફોટો છે? હમણાં મોકલો અથવા SKIP લખો",
+    hi: "क्या आपके पास equipment की फोटो है? अभी भेजें या SKIP लिखें",
+    en: "Do you have a photo of your equipment? Send it now or type SKIP"
+  },
+
+  photo_uploaded: {
+    gu: "✅ ફોટો સાચવ્યો!",
+    hi: "✅ फोटो सहेजी गई!",
+    en: "✅ Photo saved!"
+  },
+
+  invalid_image: {
+    gu: "⚠️ માન્ય ફોટો નથી. JPG/PNG મોકલો અથવા SKIP લખો.",
+    hi: "⚠️ मान्य फोटो नहीं। JPG/PNG भेजें या SKIP लिखें।",
+    en: "⚠️ Invalid photo. Send JPG/PNG or type SKIP."
+  },
+
+  ask_PhotoUrl_labour: {
+    gu: "શું તમે તમારી પ્રોફાઇલ ફોટો ઉમેરવા માંગો છો? હમણાં મોકલો અથવા SKIP લખો",
+    hi: "क्या आप अपनी प्रोफाइल फोटो जोड़ना चाहते हैं? अभी भेजें या SKIP लिखें",
+    en: "Want to add your profile photo? Send it now or type SKIP"
+  },
+
+  my_listings_header: {
+    gu: "📋 તમારા Listings:",
+    hi: "📋 आपके Listings:",
+    en: "📋 Your Listings:"
+  },
+
+  no_listings_owned: {
+    gu: "તમારી કોઈ listing નથી. મુખ્ય મેનૂથી નવી listing બનાવો.",
+    hi: "आपकी कोई listing नहीं। मुख्य मेनू से नई listing बनाएं।",
+    en: "You don't have any listings. Create one from main menu."
+  },
+
+  listing_detail_menu: {
+    gu: "1. Rate બદલો\n2. Availability toggle\n3. Dates manage કરો\n4. Delete\n0. પાછળ",
+    hi: "1. Rate बदलें\n2. Availability toggle\n3. Dates manage करें\n4. Delete\n0. वापस",
+    en: "1. Change Rate\n2. Toggle Availability\n3. Manage Dates\n4. Delete\n0. Back"
+  },
+
+  availability_menu: {
+    gu: "📅 Availability:\n\n1. Dates block કરો\n2. Dates unblock કરો\n3. Blocked dates જુઓ\n0. પાછળ",
+    hi: "📅 Availability:\n\n1. Dates block करें\n2. Dates unblock करें\n3. Blocked dates देखें\n0. वापस",
+    en: "📅 Availability:\n\n1. Block dates\n2. Unblock dates\n3. View blocked dates\n0. Back"
+  },
+
+  block_dates_prompt: {
+    gu: "કઈ તારીખો block કરવી છે? (DD-MM-YYYY, DD-MM-YYYY):",
+    hi: "कौन सी तारीखें block करनी हैं? (DD-MM-YYYY, DD-MM-YYYY):",
+    en: "Which dates to block? (DD-MM-YYYY, DD-MM-YYYY):"
+  },
+
+  date_has_booking: {
+    gu: (date) => `⚠️ ${date}: Existing booking છે. પહેલા cancel કરો.`,
+    hi: (date) => `⚠️ ${date}: Existing booking है। पहले cancel करें।`,
+    en: (date) => `⚠️ ${date}: Existing booking. Cancel it first.`
+  },
+
+  dates_blocked_success: {
+    gu: (count) => `✅ ${count} dates blocked.`,
+    hi: (count) => `✅ ${count} dates blocked.`,
+    en: (count) => `✅ ${count} dates blocked.`
+  },
+
+  delete_listing_confirm: {
+    gu: "આ listing delete કરવી છે? YES લખો confirm કરવા માટે.",
+    hi: "यह listing delete करनी है? YES लिखें confirm करने के लिए।",
+    en: "Delete this listing? Type YES to confirm."
+  },
+
+  cannot_delete_has_bookings: {
+    gu: "⚠️ Delete નથી થઈ શકતું - active bookings છે.",
+    hi: "⚠️ Delete नहीं हो सकता - active bookings हैं।",
+    en: "⚠️ Cannot delete - you have active bookings."
+  },
+
+  listing_deleted: {
+    gu: "✅ Listing deleted.",
+    hi: "✅ Listing deleted.",
+    en: "✅ Listing deleted."
+  }
 };
 
 /**

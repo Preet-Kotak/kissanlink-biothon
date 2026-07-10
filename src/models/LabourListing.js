@@ -20,6 +20,14 @@ const labourListingSchema = new mongoose.Schema(
       // e.g. ['harvesting', 'sowing', 'irrigation', 'general']
       default: ['general'],
     },
+    photoUrl: {
+      type: String,
+      default: null
+    },
+    blockedDates: {
+      type: [Date],
+      default: []
+    },
     dailyRate: {
       type: Number,
       required: true, // in INR

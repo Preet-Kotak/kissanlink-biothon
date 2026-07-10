@@ -42,7 +42,7 @@ function logError(context, error, user) {
 /**
  * Central message dispatcher — routes to the right handler based on user state
  */
-async function handleMessage(user, body, location) {
+async function handleMessage(user, body, location, media) {
   const lang = user.language || 'gu';
   const state = user.state;
 
@@ -78,7 +78,7 @@ async function handleMessage(user, body, location) {
 
     // ── Equipment listing states ──────────────────────────────────────────────
     if (state.startsWith('EQ_LIST')) {
-      return handleEquipmentList(user, body, location, lang);
+      return handleEquipmentList(user, body, location, lang, media);
     }
 
     // ── Labour search states ──────────────────────────────────────────────────
@@ -88,7 +88,7 @@ async function handleMessage(user, body, location) {
 
     // ── Labour listing states ─────────────────────────────────────────────────
     if (state.startsWith('LAB_LIST')) {
-      return handleLabourList(user, body, location, lang);
+      return handleLabourList(user, body, location, lang, media);
     }
 
     // ── Main menu / default ───────────────────────────────────────────────────
