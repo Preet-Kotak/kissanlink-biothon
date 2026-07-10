@@ -11,7 +11,6 @@ async function handleProfile(user, body, location, lang) {
 
   switch (user.state) {
 
-    // ── Profile menu ──────────────────────────────────────────────────────────
     case 'PROFILE_MENU': {
       const choice = parseInt(body);
       switch (choice) {
@@ -29,6 +28,10 @@ async function handleProfile(user, body, location, lang) {
           break;
         case 4: // Back to menu
           await showMainMenu(user, lang);
+          break;
+        case 5: // My Listings
+          const { showMyListings } = require('./myListings');
+          await showMyListings(user, lang);
           break;
         default:
           // Re-show profile

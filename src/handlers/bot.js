@@ -76,6 +76,18 @@ async function handleMessage(user, body, location, media) {
       return handleProfile(user, body, location, lang);
     }
 
+    // ── My listings states ────────────────────────────────────────────────────
+    if (state.startsWith('MY_LISTINGS') || state.startsWith('LISTING_')) {
+      const { handleMyListings } = require('./myListings');
+      return handleMyListings(user, body, lang);
+    }
+
+    // ── Availability management states ────────────────────────────────────────
+    if (state.startsWith('AVAILABILITY_') || state.startsWith('MANAGE_AVAILABILITY')) {
+      const { handleAvailability } = require('./availability');
+      return handleAvailability(user, body, lang);
+    }
+
     // ── TASK 1: Equipment search states (Date First) ──────────────────────────
     if (state.startsWith('EQ_SEARCH')) {
       return handleEquipmentSearch(user, body, location, lang);

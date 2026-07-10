@@ -10,13 +10,19 @@ const FROM = process.env.TWILIO_WHATSAPP_NUMBER; // whatsapp:+14155238886
 /**
  * Send a plain text WhatsApp message
  */
-async function sendMessage(to, body) {
+async function sendMessage(to, body, mediaUrl = null) {
   try {
-    await client.messages.create({
+    const messageData = {
       from: FROM,
       to,
       body,
-    });
+    };
+
+    if (mediaUrl) {
+      messageData.mediaUrl = [mediaUrl];
+    }
+
+    await client.messages.create(messageData);
   } catch (err) {
     console.error(`❌ Twilio send error to ${to}:`, err.message);
   }

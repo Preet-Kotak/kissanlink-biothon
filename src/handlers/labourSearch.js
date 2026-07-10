@@ -136,29 +136,13 @@ async function handleLabourSearch(user, body, location, lang) {
         return showMainMenu(user, lang);
       }
 
-      let resultText = t('lab_search_results_header', lang) + '\n\n';
-      const savedResults = [];
+      const savedResults = await showLabourResults(user, listings, lang);
 
-      listings.forEach((listing, index) => {
-        const dist = calculateDistance(
-          user.location.coordinates[1], user.location.coordinates[0],
-          listing.location.coordinates[1], listing.location.coordinates[0]
-        );
-        const rating = listing.rating ? listing.rating.toFixed(1) : 'New';
-        
-        resultText += t('labour_card', lang, index + 1, listing.workerName, listing.village || 'Nearby', listing.dailyRate, rating, dist + 'km') + '\n\n';
-        savedResults.push(listing._id.toString());
-      });
-
-      resultText += t('lab_search_results_footer', lang);
-
-      await user.updateOne({ 
+      return await user.updateOne({ 
         state: 'LAB_SEARCH_RESULTS', 
         'tempData.searchResults': savedResults,
         'tempData.selectedSkill': selectedSkill
       });
-
-      return sendMessage(user.phone, resultText);
     }
 
     // ── STATE: BOOKING CONFIRMATION & HANDSHAKE ──────────────────────────────
@@ -243,4 +227,42 @@ async function sendLabourSkillPrompt(phone, lang, isError = false) {
   return sendMessage(phone, msg);
 }
 
-module.exports = { handleLabourSearch, sendLabourSkillPrompt, getAvailableLabourListings };
+/**
+ * Display search results to user with images where available
+ */
+async function showLabourResults(user, listings, lang) {
+  const savedResults = [];
+
+  // 1. Send header
+  await sendMessage(user.phone, t('lab_search_results_header', lang));
+
+  // 2. Send each listing card
+  for (let index = 0; index < listings.length; index++) {
+    const listing = listings[index];
+    const dist = calculateDistance(
+      user.location.coordinates[1], user.location.coordinates[0],
+      listing.location.coordinates[1], listing.location.coordinates[0]
+    );
+    const rating = listing.rating ? listing.rating.toFixed(1) : 'New';
+    const listingDetailsText = t('labour_card', lang, index + 1, listing.workerName, listing.village || 'Nearby', listing.dailyRate, rating, dist + 'km');
+
+    if (listing.photoUrl) {
+      await sendMessage(
+        user.phone,
+        listingDetailsText,
+        listing.photoUrl
+      );
+    } else {
+      await sendMessage(user.phone, listingDetailsText);
+    }
+
+    savedResults.push(listing._id.toString());
+  }
+
+  // 3. Send footer
+  await sendMessage(user.phone, t('lab_search_results_footer', lang));
+
+  return savedResults;
+}
+
+module.exports = { handleLabourSearch, sendLabourSkillPrompt, getAvailableLabourListings, showLabourResults };

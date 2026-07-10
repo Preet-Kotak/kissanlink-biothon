@@ -332,9 +332,9 @@ const strings = {
   },
 
   profile_options: {
-    gu: ['✏️ નામ બદલો', '📍 લોકેશન અપડેટ કરો', '🌐 ભાષા બદલો', '🔙 મુખ્ય મેનૂ'],
-    hi: ['✏️ नाम बदलें', '📍 लोकेशन अपडेट करें', '🌐 भाषा बदलें', '🔙 मुख्य मेनू'],
-    en: ['✏️ Change Name', '📍 Update Location', '🌐 Change Language', '🔙 Main Menu'],
+    gu: ['✏️ નામ બદલો', '📍 લોકેશન અપડેટ કરો', '🌐 ભાષા બદલો', '🔙 મુખ્ય મેનૂ', '📋 મારા Listings'],
+    hi: ['✏️ नाम बदलें', '📍 लोकेशन अपडेट करें', '🌐 भाषा बदलें', '🔙 मुख्य मेनू', '📋 मेरे Listings'],
+    en: ['✏️ Change Name', '📍 Update Location', '🌐 Change Language', '🔙 Main Menu', '📋 My Listings'],
   },
 
   // ── Generic ──────────────────────────────────────────────────────────────────
@@ -472,6 +472,48 @@ const strings = {
     gu: "✅ Listing deleted.",
     hi: "✅ Listing deleted.",
     en: "✅ Listing deleted."
+  },
+
+  rate_updated_success: {
+    gu: "✅ ભાવ બદલાઈ ગયો!",
+    hi: "✅ दर बदल दी गई!",
+    en: "✅ Rate updated successfully!"
+  },
+
+  back_to_profile: {
+    gu: "🔙 પ્રોફાઇલ મેનૂ",
+    hi: "🔙 प्रोफाइल मेनू",
+    en: "🔙 Profile Menu"
+  },
+
+  status_available: {
+    gu: "ઉપલબ્ધ",
+    hi: "उपलब्ध",
+    en: "Available"
+  },
+
+  status_unavailable: {
+    gu: "અનઉપલબ્ધ",
+    hi: "अनुपलब्ध",
+    en: "Unavailable"
+  },
+
+  equipment_listing_item: {
+    gu: (type, rate, status) => `🚜 ${type} — ₹${rate}/દિવસ (${status})`,
+    hi: (type, rate, status) => `🚜 ${type} — ₹${rate}/दिन (${status})`,
+    en: (type, rate, status) => `🚜 ${type} — ₹${rate}/day (${status})`
+  },
+
+  labour_listing_item: {
+    gu: (skills, rate, status) => `👷 Labour (${skills}) — ₹${rate}/દિવસ (${status})`,
+    hi: (skills, rate, status) => `👷 Labour (${skills}) — ₹${rate}/दिन (${status})`,
+    en: (skills, rate, status) => `👷 Labour (${skills}) — ₹${rate}/day (${status})`
+  },
+
+  availability_updated: {
+    gu: (status) => `✅ સ્ટેટસ ${status} સેટ થયું.`,
+    hi: (status) => `✅ स्टेटस ${status} सेट हो गया।`,
+    en: (status) => `✅ Status updated to ${status}.`
   }
 };
 

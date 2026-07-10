@@ -74,6 +74,7 @@ async function handleEquipmentList(user, body, location, lang, media) {
           type: eqType,
           dailyRate: rate,
           photoUrl,
+          blockedDates: [],
           available: true,
           location: user.location,
           village: user.village || '',
