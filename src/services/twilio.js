@@ -17,14 +17,20 @@ const FROM = process.env.TWILIO_WHATSAPP_NUMBER; // whatsapp:+14155238886
  * @param {string} body - message content
  * @param {string} lang - 'gu' | 'hi' | 'en' (default: 'gu')
  */
-async function sendMessage(to, body, lang = 'gu') {
+async function sendMessage(to, body, lang = 'gu', mediaUrl = null) {
   try {
     const footer = `\n\n${t('back_hint', lang)}`;
-    await client.messages.create({
+    const messageData = {
       from: FROM,
       to,
       body: body + footer,
-    });
+    };
+
+    if (mediaUrl) {
+      messageData.mediaUrl = [mediaUrl];
+    }
+
+    await client.messages.create(messageData);
   } catch (err) {
     console.error(`❌ Twilio send error to ${to}:`, err.message);
   }

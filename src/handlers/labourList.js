@@ -10,7 +10,7 @@ const { showMainMenu } = require('./mainMenu');
  *
  * Worker can pick multiple skills (type: 1,2 or 1,2,3)
  */
-async function handleLabourList(user, body, location, lang) {
+async function handleLabourList(user, body, location, lang, media) {
 
   switch (user.state) {
 
@@ -40,13 +40,37 @@ async function handleLabourList(user, body, location, lang) {
         await sendMessage(user.phone, t('invalid_number', lang), lang);
         break;
       }
+      await user.updateOne({ state: 'LAB_LIST_PHOTO', tempData: { ...user.tempData, rate } });
+      await sendMessage(user.phone, t('ask_PhotoUrl_labour', lang) + '\n' + t('back_hint', lang));
+      break;
+    }
+
+    case 'LAB_LIST_PHOTO': {
+      let photoUrl = null;
+      if (media && media.url) {
+        const cType = media.contentType || '';
+        if (cType === 'image/jpeg' || cType === 'image/png') {
+          photoUrl = media.url;
+          await sendMessage(user.phone, t('photo_uploaded', lang));
+        } else {
+          await sendMessage(user.phone, t('invalid_image', lang));
+          await sendMessage(user.phone, t('ask_PhotoUrl_labour', lang) + '\n' + t('back_hint', lang));
+          break;
+        }
+      } else if (body.trim().toLowerCase() === 'skip') {
+        photoUrl = null;
+      } else {
+        await sendMessage(user.phone, t('invalid_image', lang));
+        break;
+      }
 
       const skills = user.tempData.skills;
+      const rate = user.tempData.rate;
 
       // Update or create listing
       const existing = await LabourListing.findOne({ workerId: user._id });
       if (existing) {
-        await existing.updateOne({ skills, dailyRate: rate, available: true });
+        await existing.updateOne({ skills, dailyRate: rate, photoUrl, available: true });
       } else {
         await LabourListing.create({
           workerId: user._id,
@@ -54,6 +78,7 @@ async function handleLabourList(user, body, location, lang) {
           workerName: user.name,
           skills,
           dailyRate: rate,
+          photoUrl,
           available: true,
           location: user.location,
           village: user.village || '',

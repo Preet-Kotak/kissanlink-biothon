@@ -45,8 +45,7 @@ function logError(context, error, user) {
 /**
  * Central message dispatcher
  */
-async function handleMessage(user, body, location) {
-
+async function handleMessage(user, body, location, media) {
   const lang = user.language || 'gu';
   const state = user.state;
   const now = new Date();
@@ -131,26 +130,26 @@ async function handleMessage(user, body, location) {
   const textBody = body.trim().toUpperCase();
   if (user.isRegistered && textBody.startsWith('CANCEL BK-')) {
     const bookingId = textBody.split(' ')[1];
-    
+
     const booking = await Booking.findOne({ bookingId });
     if (!booking || booking.farmerId.toString() !== user._id.toString()) {
       await sendMessage(user.phone, t('cancel_invalid_id', lang), lang);
       return;
     }
-    
+
     if (booking.status === 'cancelled') {
       await sendMessage(user.phone, t('cancel_already', lang), lang);
       return;
     }
-    
+
     await booking.updateOne({ status: 'cancelled' });
-    
+
     await sendMessage(user.phone, t('cancel_success_farmer', lang, booking.bookingId), lang);
-    
+
     const dateStr = formatDate(booking.bookingDate);
     const provider = await User.findById(booking.providerId);
     const providerLang = provider?.language || 'gu';
-    
+
     if (booking.type === 'equipment') {
       const EquipmentListing = require('../models/EquipmentListing');
       const listing = await EquipmentListing.findById(booking.listingId);
@@ -163,7 +162,7 @@ async function handleMessage(user, body, location) {
       if (listing) await listing.updateOne({ available: true });
       await sendMessage(booking.providerPhone, t('cancel_notify_worker', providerLang, user.name, dateStr), providerLang);
     }
-    
+
     const updated = await User.findById(user._id);
     return showMainMenu(updated, lang);
   }
@@ -201,6 +200,18 @@ async function handleMessage(user, body, location) {
       return handleProfile(user, body, location, lang);
     }
 
+    // ── My listings states ────────────────────────────────────────────────────
+    if (state.startsWith('MY_LISTINGS') || state.startsWith('LISTING_')) {
+      const { handleMyListings } = require('./myListings');
+      return handleMyListings(user, body, lang);
+    }
+
+    // ── Availability management states ────────────────────────────────────────
+    if (state.startsWith('AVAILABILITY_') || state.startsWith('MANAGE_AVAILABILITY')) {
+      const { handleAvailability } = require('./availability');
+      return handleAvailability(user, body, lang);
+    }
+
     // ── TASK 1: Equipment search states (Date First + Task 4: Multi-day) ──────
     if (state.startsWith('EQ_SEARCH') || state === 'EQ_SEARCH_DAYS' || state === 'EQ_SEARCH_DAYS_CUSTOM') {
       return handleEquipmentSearch(user, body, location, lang);
@@ -208,7 +219,7 @@ async function handleMessage(user, body, location) {
 
     // ── Equipment listing states ──────────────────────────────────────────────
     if (state.startsWith('EQ_LIST')) {
-      return handleEquipmentList(user, body, location, lang);
+      return handleEquipmentList(user, body, location, lang, media);
     }
 
     // ── TASK 1: Labour search states (Date First + Task 4: Multi-day) ─────────
@@ -218,19 +229,19 @@ async function handleMessage(user, body, location) {
 
     // ── Labour listing states ─────────────────────────────────────────────────
     if (state.startsWith('LAB_LIST')) {
-      return handleLabourList(user, body, location, lang);
+      return handleLabourList(user, body, location, lang, media);
     }
 
     // ── My Bookings states (Task 4 - Part 9) ─────────────────────────────────
-    if (state === 'MY_BOOKINGS' || state === 'MY_BOOKINGS_LIST' || 
-        state === 'BOOKING_DETAIL' || state === 'BOOKING_CANCEL_CONFIRM' || 
-        state === 'BOOKING_CANCEL_REASON') {
+    if (state === 'MY_BOOKINGS' || state === 'MY_BOOKINGS_LIST' ||
+      state === 'BOOKING_DETAIL' || state === 'BOOKING_CANCEL_CONFIRM' ||
+      state === 'BOOKING_CANCEL_REASON') {
       return handleMyBookings(user, body, lang);
     }
 
     // ── Main menu / default ───────────────────────────────────────────────────
     return handleMainMenu(user, body, lang);
-    
+
   } catch (err) {
     logError('handleMessage', err, user);
     await sendMessage(user.phone, t('system_error', lang) || '⚠️ Something went wrong. Please try again.');

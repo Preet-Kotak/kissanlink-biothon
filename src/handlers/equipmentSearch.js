@@ -13,10 +13,10 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
   const R = 6371; // Radius of Earth in km
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-            Math.sin(dLon/2) * Math.sin(dLon/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return (R * c).toFixed(1);
 }
 
@@ -50,19 +50,19 @@ async function getAvailableEquipmentListings(type, dateObj, coordinates) {
     location: {
       $near: {
         $geometry: { type: 'Point', coordinates: coordinates },
-        $maxDistance: 10000 
+        $maxDistance: 10000
       }
     }
   }).limit(3).lean();
 
   // Step 3: Expand to 20km if no results found
-  if (listings.length <3) {
+  if (listings.length < 3) {
     listings = await EquipmentListing.find({
       ...baseQuery,
       location: {
         $near: {
           $geometry: { type: 'Point', coordinates: coordinates },
-          $maxDistance: 20000 
+          $maxDistance: 20000
         }
       }
     }).limit(3).lean();
@@ -82,15 +82,15 @@ async function handleEquipmentSearch(user, body, location, lang) {
     // ── STATE: INITIAL DATE PROMPT ──────────────────────────────────────────
     if (state === 'EQ_SEARCH_DATE') {
       const { tomorrow, inOneWeek } = getQuickDateOptions();
-      
+
       if (text === '1') {
         await user.updateOne({ state: 'EQ_SEARCH_TYPE', 'tempData.bookingDate': tomorrow });
         return sendEquipmentTypePrompt(user.phone, lang);
-      } 
+      }
       if (text === '2') {
         await user.updateOne({ state: 'EQ_SEARCH_TYPE', 'tempData.bookingDate': inOneWeek });
         return sendEquipmentTypePrompt(user.phone, lang);
-      } 
+      }
       if (text === '3') {
         await user.updateOne({ state: 'EQ_SEARCH_DATE_CUSTOM' });
         return sendMessage(user.phone, t('eq_search_date_custom_prompt', lang) + t('back_hint', lang));
@@ -104,12 +104,12 @@ async function handleEquipmentSearch(user, body, location, lang) {
     // ── STATE: CUSTOM DATE INPUT ─────────────────────────────────────────────
     if (state === 'EQ_SEARCH_DATE_CUSTOM') {
       const parsed = parseDate(text, 30);
-      
+
       if (!parsed.valid) {
         let errorMsg = t('date_invalid_format', lang);
         if (parsed.reason === 'PAST_DATE') errorMsg = t('date_in_past', lang);
         if (parsed.reason === 'TOO_FAR_AHEAD') errorMsg = t('date_too_far_ahead', lang);
-        
+
         return sendMessage(user.phone, errorMsg + '\n\n' + t('eq_search_date_custom_prompt', lang) + t('back_hint', lang));
       }
 
@@ -128,7 +128,7 @@ async function handleEquipmentSearch(user, body, location, lang) {
 
       const selectedType = typesRaw[typeIndex];
       const targetDate = new Date(user.tempData.bookingDate);
-      
+
       // Execute the Smart Filter
       const listings = await getAvailableEquipmentListings(selectedType, targetDate, user.location.coordinates);
 
@@ -138,30 +138,13 @@ async function handleEquipmentSearch(user, body, location, lang) {
         return showMainMenu(user, lang);
       }
 
-      // Format results and save them to session
-      let resultText = t('eq_search_results_header', lang) + '\n\n';
-      const savedResults = [];
+      const savedResults = await showEquipmentResults(user, listings, lang);
 
-      listings.forEach((listing, index) => {
-        const dist = calculateDistance(
-          user.location.coordinates[1], user.location.coordinates[0],
-          listing.location.coordinates[1], listing.location.coordinates[0]
-        );
-        const rating = listing.rating ? listing.rating.toFixed(1) : 'New';
-        
-        resultText += t('equipment_card', lang, index + 1, listing.ownerName, listing.village || 'Nearby', listing.dailyRate, rating, dist + 'km') + '\n\n';
-        savedResults.push(listing._id.toString());
-      });
-
-      resultText += t('eq_search_results_footer', lang);
-
-      await user.updateOne({ 
-        state: 'EQ_SEARCH_RESULTS', 
+      return await user.updateOne({
+        state: 'EQ_SEARCH_RESULTS',
         'tempData.searchResults': savedResults,
         'tempData.selectedType': selectedType
       });
-
-      return sendMessage(user.phone, resultText);
     }
 
     // ── STATE: BOOKING CONFIRMATION & HANDSHAKE ──────────────────────────────
@@ -301,13 +284,52 @@ async function sendEquipmentTypePrompt(phone, lang, isError = false) {
   const types = t('equipment_types', lang);
   let msg = isError ? t('invalid_input', lang) + '\n\n' : '';
   msg += t('ask_equipment_type', lang) + '\n';
-  
+
   types.forEach((type, index) => {
     msg += `\n${index + 1}. ${type}`;
   });
-  
+
   msg += '\n\n' + t('back_hint', lang);
   return sendMessage(phone, msg);
 }
 
-module.exports = { handleEquipmentSearch, sendEquipmentTypePrompt, getAvailableEquipmentListings, createEquipmentBooking };
+/**
+ * Display search results to user with images where available
+ */
+async function showEquipmentResults(user, listings, lang) {
+  const savedResults = [];
+
+  // 1. Send header
+  await sendMessage(user.phone, t('eq_search_results_header', lang), lang);
+
+  // 2. Send each listing card
+  for (let index = 0; index < listings.length; index++) {
+    const listing = listings[index];
+    const dist = calculateDistance(
+      user.location.coordinates[1], user.location.coordinates[0],
+      listing.location.coordinates[1], listing.location.coordinates[0]
+    );
+    const rating = listing.rating ? listing.rating.toFixed(1) : 'New';
+    const listingDetailsText = t('equipment_card', lang, index + 1, listing.ownerName, listing.village || 'Nearby', listing.dailyRate, rating, dist + 'km');
+
+    if (listing.photoUrl) {
+      await sendMessage(
+        user.phone,
+        listingDetailsText,
+        lang,
+        listing.photoUrl
+      );
+    } else {
+      await sendMessage(user.phone, listingDetailsText, lang);
+    }
+
+    savedResults.push(listing._id.toString());
+  }
+
+  // 3. Send footer
+  await sendMessage(user.phone, t('eq_search_results_footer', lang), lang);
+
+  return savedResults;
+}
+
+module.exports = { handleEquipmentSearch, sendEquipmentTypePrompt, getAvailableEquipmentListings, createEquipmentBooking, showEquipmentResults };

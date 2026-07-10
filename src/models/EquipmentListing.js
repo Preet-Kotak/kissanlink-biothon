@@ -24,6 +24,14 @@ const equipmentListingSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    photoUrl: {
+      type: String,
+      default: null
+    },
+    blockedDates: {
+      type: [Date],
+      default: []
+    },
     dailyRate: {
       type: Number,
       required: true, // in INR

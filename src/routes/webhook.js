@@ -15,7 +15,10 @@ router.post('/', async (req, res) => {
   const body = (req.body.Body || '').trim();
   const latitude = req.body.Latitude;
   const longitude = req.body.Longitude;
-
+  const media = {
+    url: req.body.MediaUrl0 || null,
+    contentType: req.body.MediaContentType0 || null
+  }
   if (!from) return;
 
   try {
@@ -25,7 +28,7 @@ router.post('/', async (req, res) => {
       user = await User.create({ phone: from, state: 'NEW' });
     }
 
-    await handleMessage(user, body, { latitude, longitude });
+    await handleMessage(user, body, { latitude, longitude }, media);
   } catch (err) {
     console.error('❌ Webhook error:', err);
   }

@@ -11,7 +11,6 @@ async function handleProfile(user, body, location, lang) {
 
   switch (user.state) {
 
-    // ── Profile menu ──────────────────────────────────────────────────────────
     case 'PROFILE_MENU': {
       const choice = parseInt(body);
       switch (choice) {
@@ -31,7 +30,11 @@ async function handleProfile(user, body, location, lang) {
           await user.updateOne({ state: 'PROFILE_VILLAGE' });
           await sendMessage(user.phone, t('village_prompt', lang), lang);
           break;
-        case 5: // Back to main menu
+        case 5: // My Listings
+          const { showMyListings } = require('./myListings');
+          await showMyListings(user, lang);
+          break;
+        case 6: // Back to main menu
           await user.updateOne({ state: 'MAIN_MENU', tempData: {} });
           const updated = await User.findById(user._id);
           return showMainMenu(updated, lang);
