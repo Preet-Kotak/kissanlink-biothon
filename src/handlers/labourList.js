@@ -51,8 +51,10 @@ async function handleLabourList(user, body, location, lang, media) {
         const cType = media.contentType || '';
         if (cType === 'image/jpeg' || cType === 'image/png') {
           photoUrl = media.url;
+          await sendMessage(user.phone, t('photo_uploaded', lang));
         } else {
           await sendMessage(user.phone, t('invalid_image', lang));
+          await sendMessage(user.phone, t('ask_PhotoUrl_labour', lang) + '\n' + t('back_hint', lang));
           break;
         }
       } else if (body.trim().toLowerCase() === 'skip') {
