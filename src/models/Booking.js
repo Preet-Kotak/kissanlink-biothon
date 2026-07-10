@@ -105,4 +105,15 @@ const bookingSchema = new mongoose.Schema(
 // Index for efficient completed bookings query
 bookingSchema.index({ status: 1, endDate: 1 });
 
+// TASK 1: Compound index for double-booking prevention
+bookingSchema.index(
+  { listingId: 1, bookingDate: 1 },
+  { 
+    unique: true, 
+    partialFilterExpression: { 
+      status: { $in: ['pending', 'confirmed'] } 
+    } 
+  }
+);
+
 module.exports = mongoose.model('Booking', bookingSchema);

@@ -2,7 +2,9 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const webhookRouter = require('./routes/webhook');
+const cron = require('node-cron');
 const { processCompletedBookings } = require('./handlers/rating');
+const { expirePendingBookings } = require('./utils/cronJobs');
 
 const app = express();
 app.use(express.urlencoded({ extended: false }));
@@ -54,18 +56,37 @@ mongoose
       console.log(`[Keepalive] Self-ping active → ${RENDER_URL}/health every ${KEEPALIVE_INTERVAL / 1000}s`);
     }
 
-    // ── Cron: check for completed bookings every hour ──────────────────────
-    // Marks bookings past their date as 'completed' and sends rating prompts
-    setInterval(async () => {
+    // ── TASK 4: Daily Booking Completion Check (6 AM IST) ─────────────
+    cron.schedule('0 6 * * *', async () => {
+      console.log('[Cron] Running daily booking completion check...');
       try {
         await processCompletedBookings();
+        console.log('[Cron] ✅ Completed bookings processed');
       } catch (err) {
-        console.error('❌ Cron error:', err);
+        console.error('[Cron] ❌ Error processing bookings:', err);
       }
-    }, 60 * 60 * 1000); // every 60 minutes
+    }, {
+      timezone: "Asia/Kolkata"
+    });
 
-    // Also run once on startup to catch any missed bookings
+    // ── TASK 1: Hourly Pending Booking Expiry Check ───────────────────
+    cron.schedule('0 * * * *', async () => {
+      console.log('[Cron] Checking for expired pending bookings...');
+      try {
+        const count = await expirePendingBookings();
+        console.log(`[Cron] Processed ${count} expired bookings.`);
+      } catch (err) {
+        console.error('[Cron] ❌ Error expiring bookings:', err);
+      }
+    }, { 
+      timezone: "Asia/Kolkata" 
+    });
+    
+    // Run both once immediately when the server starts to clean up missed ones
+    console.log('[Startup] Running initial background checks...');
     processCompletedBookings().catch(console.error);
+    expirePendingBookings().catch(console.error);
+
   })
   .catch((err) => {
     console.error('❌ MongoDB connection error:', err);

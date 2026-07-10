@@ -51,6 +51,50 @@ const strings = {
     en: `📅 My Bookings\n\n_This feature will be available soon._`,
   },
 
+  // ── TASK 1: Enhanced Date Selection UI ─────────────────────────────────────
+
+  eq_search_date_prompt: {
+    gu: (tomorrow, inWeek) => `તમારે ક્યારે સાધન જોઈએ છે?\n\n1. આવતીકાલે (${tomorrow})\n2. એક અઠવાડિયામાં (${inWeek})\n3. તારીખ દાખલ કરો\n0. મુખ્ય મેનૂ`,
+    hi: (tomorrow, inWeek) => `आपको उपकरण कब चाहिए?\n\n1. कल (${tomorrow})\n2. एक हफ्ते में (${inWeek})\n3. तारीख दर्ज करें\n0. मुख्य मेनू`,
+    en: (tomorrow, inWeek) => `When do you need equipment?\n\n1. Tomorrow (${tomorrow})\n2. In a week (${inWeek})\n3. Enter custom date\n0. Main menu`
+  },
+
+  lab_search_date_prompt: {
+    gu: (tomorrow, inWeek) => `તમારે ક્યારે મજૂર જોઈએ છે?\n\n1. આવતીકાલે (${tomorrow})\n2. એક અઠવાડિયામાં (${inWeek})\n3. તારીખ દાખલ કરો\n0. મુખ્ય મેનૂ`,
+    hi: (tomorrow, inWeek) => `आपको मजदूर कब चाहिए?\n\n1. कल (${tomorrow})\n2. एक हफ्ते में (${inWeek})\n3. तारीख दर्ज करें\n0. मुख्य मेनू`,
+    en: (tomorrow, inWeek) => `When do you need workers?\n\n1. Tomorrow (${tomorrow})\n2. In a week (${inWeek})\n3. Enter custom date\n0. Main menu`
+  },
+
+  eq_search_date_custom_prompt: {
+    gu: `કઈ તારીખ જોઈએ? (DD-MM-YYYY ફોર્મેટ માં ટાઈપ કરો, જેમ કે 15-07-2026)`,
+    hi: `कौन सी तारीख चाहिए? (DD-MM-YYYY फॉर्मेट में टाइप करें, जैसे 15-07-2026)`,
+    en: `Enter custom date in DD-MM-YYYY format (e.g. 15-07-2026):`
+  },
+
+  lab_search_date_custom_prompt: {
+    gu: `કઈ તારીખ જોઈએ? (DD-MM-YYYY ફોર્મેટ માં ટાઈપ કરો, જેમ કે 15-07-2026)`,
+    hi: `कौन सी तारीख चाहिए? (DD-MM-YYYY फॉर्मेट में टाइप करें, जैसे 15-07-2026)`,
+    en: `Enter custom date in DD-MM-YYYY format (e.g. 15-07-2026):`
+  },
+
+  date_invalid_format: {
+    gu: `⚠️ ખોટી તારીખ. DD-MM-YYYY ફોર્મેટ માં ટાઈપ કરો (જેમ કે 15-07-2026):`,
+    hi: `⚠️ गलत तारीख. DD-MM-YYYY फॉर्मेट में टाइप करें (जैसे 15-07-2026):`,
+    en: `⚠️ Invalid format. Use DD-MM-YYYY (e.g. 15-07-2026):`,
+  },
+
+  date_in_past: {
+    gu: `⚠️ માફ કરજો, તારીખ વીતી ગયેલ સમયની ના હોઈ શકે.`,
+    hi: `⚠️ माफ़ करें, तारीख बीते हुए समय की नहीं हो सकती।`,
+    en: `⚠️ Date cannot be in the past.`
+  },
+
+  date_too_far_ahead: {
+    gu: `⚠️ માફ કરજો, તમે માત્ર 30 દિવસ સુધીનું જ બુકિંગ કરી શકો છો. કોઈ વહેલી તારીખ પસંદ કરો.`,
+    hi: `⚠️ माफ़ करें, आप केवल 30 दिनों तक की बुकिंग कर सकते हैं। कोई पहले की तारीख चुनें।`,
+    en: `⚠️ Bookings only allowed up to 30 days ahead. Please choose an earlier date.`
+  },
+
   // ── Equipment Search ─────────────────────────────────────────────────────────
 
   ask_equipment_type: {
@@ -67,22 +111,22 @@ const strings = {
 
   equipment_types_raw: ['Tractor', 'Rotavator', 'Thresher', 'Water Pump', 'Sprayer'],
 
-  ask_booking_date: {
-    gu: `કઈ તારીખ જોઈએ? (DD-MM-YYYY ફોર્મેટ માં ટાઈપ કરો, જેમ કે 20-06-2026)`,
-    hi: `कौन सी तारीख चाहिए? (DD-MM-YYYY फॉर्मेट में टाइप करें, जैसे 20-06-2026)`,
-    en: `Which date do you need? (Type in DD-MM-YYYY format, e.g. 20-06-2026)`,
+  no_listings_found: {
+    gu: `😔 નજીકમાં કોઈ ઉપલબ્ધ નથી. કૃપા કરીને બીજી શોધ કરવાનો પ્રયાસ કરો.`,
+    hi: `😔 पास में कोई उपलब्ध नहीं है। कृपया कोई अन्य खोज करने का प्रयास करें।`,
+    en: `😔 No listings found nearby. Try another search.`
+  },
+  
+  eq_search_results_header: {
+    gu: `🚜 ઉપલબ્ધ સાધનો:`,
+    hi: `🚜 उपलब्ध उपकरण:`,
+    en: `🚜 Available Equipment:`
   },
 
-  no_equipment_found: {
-    gu: `😔 10km ની અંદર કોઈ *{type}* ઉપલબ્ધ નથી.\n\nથોડા સમય પછી ફરી ચકાસો.`,
-    hi: `😔 10km के भीतर कोई *{type}* उपलब्ध नहीं है.\n\nथोड़ी देर बाद फिर जांचें.`,
-    en: `😔 No *{type}* available within 10km.\n\nCheck again later.`,
-  },
-
-  equipment_results_header: {
-    gu: (type, radius) => `✅ નજીકના *${type}* મળ્યા (${radius}km માં):`,
-    hi: (type, radius) => `✅ नज़दीकी *${type}* मिले (${radius}km में):`,
-    en: (type, radius) => `✅ Nearby *${type}* found (within ${radius}km):`,
+  eq_search_results_footer: {
+    gu: `\nકોઈ નંબર પસંદ કરો અથવા મુખ્ય મેનૂ માટે 0 દબાવો`,
+    hi: `\nकोई नंबर चुनें या मुख्य मेनू के लिए 0 दबाएं`,
+    en: `\nSelect a number or 0 for main menu`
   },
 
   equipment_card: {
@@ -95,9 +139,9 @@ const strings = {
   },
 
   ask_select_listing: {
-    gu: `કઈ પસંદ કરો? (1 / 2 / 3 ટાઈપ કરો)`,
-    hi: `कौन सा चुनें? (1 / 2 / 3 टाइप करें)`,
-    en: `Which one to book? (Type 1 / 2 / 3)`,
+    gu: `કઈ પસંદ કરો? (નંબર ટાઈપ કરો)`,
+    hi: `कौन सा चुनें? (नंबर टाइप करें)`,
+    en: `Which one to book? (Type number)`,
   },
 
   // ── Equipment Listing (owner side) ──────────────────────────────────────────
@@ -142,16 +186,16 @@ const strings = {
     en: `How many workers do you need? (Type number):`,
   },
 
-  no_labour_found: {
-    gu: `😔 10km ની અંદર *{skill}* માટે કોઈ મજૂર ઉપલબ્ધ નથી.`,
-    hi: `😔 10km के भीतर *{skill}* के लिए कोई मजदूर उपलब्ध नहीं है.`,
-    en: `😔 No workers available for *{skill}* within 10km.`,
+  lab_search_results_header: {
+    gu: `👷 ઉપલબ્ધ મજૂરો:`,
+    hi: `👷 उपलब्ध मजदूर:`,
+    en: `👷 Available Workers:`
   },
 
-  labour_results_header: {
-    gu: (skill, radius) => `✅ *${skill}* માટે નજીકના મજૂર (${radius}km માં):`,
-    hi: (skill, radius) => `✅ *${skill}* के लिए नज़दीकी मजदूर (${radius}km में):`,
-    en: (skill, radius) => `✅ Nearby workers for *${skill}* (within ${radius}km):`,
+  lab_search_results_footer: {
+    gu: `\nકોઈ નંબર પસંદ કરો અથવા મુખ્ય મેનૂ માટે 0 દબાવો`,
+    hi: `\nकोई नंबर चुनें या मुख्य मेनू के लिए 0 दबाएं`,
+    en: `\nSelect a number or 0 for main menu`
   },
 
   labour_card: {
@@ -183,44 +227,60 @@ const strings = {
     en: (name) => `✅ *${name}*, you are now listed for work!\n\nYou'll get a WhatsApp message when a farmer needs you.`,
   },
 
-  // ── Booking Confirmation ─────────────────────────────────────────────────────
+  // ── TASK 1: Booking Handshake Notifications ─────────────────────────────────
 
-  booking_confirm_equipment: {
-    gu: (name, type, date, rate, phone) =>
-      `✅ *બુકિંગ Confirmed!*\n\n🚜 સાધન: *${type}*\n👤 માલિક: *${name}*\n📅 તારીખ: ${date}\n💰 ભાવ: ₹${rate}/દિવસ\n📞 સંપર્ક: ${phone}\n\n_માલિક ને notification ગઈ છે. સીધો સંપર્ક કરી શકો છો._`,
-    hi: (name, type, date, rate, phone) =>
-      `✅ *बुकिंग Confirmed!*\n\n🚜 उपकरण: *${type}*\n👤 मालिक: *${name}*\n📅 तारीख: ${date}\n💰 किराया: ₹${rate}/दिन\n📞 संपर्क: ${phone}\n\n_मालिक को notification भेजी गई है। सीधे संपर्क कर सकते हैं।_`,
-    en: (name, type, date, rate, phone) =>
-      `✅ *Booking Confirmed!*\n\n🚜 Equipment: *${type}*\n👤 Owner: *${name}*\n📅 Date: ${date}\n💰 Rate: ₹${rate}/day\n📞 Contact: ${phone}\n\n_Owner has been notified. You can contact them directly._`,
+  listing_just_booked: {
+    gu: `⚠️ માફ કરજો, કોઈએ હમણાં જ આ બુક કરી લીધું છે. કૃપા કરીને બીજું પસંદ કરો.`,
+    hi: `⚠️ माफ़ करें, किसी ने अभी इसे बुक कर लिया है। कृपया दूसरा चुनें।`,
+    en: `⚠️ Sorry, someone just booked this. Please choose another.`
   },
 
-  booking_confirm_labour: {
-    gu: (name, skill, date, rate, phone) =>
-      `✅ *બુકિંગ Confirmed!*\n\n🌾 કામ: *${skill}*\n👤 મજૂર: *${name}*\n📅 તારીખ: ${date}\n💰 મજૂરી: ₹${rate}/દિવસ\n📞 સંપર્ક: ${phone}\n\n_મજૂર ને notification ગઈ છે. સીધો સંપર્ક કરી શકો છો._`,
-    hi: (name, skill, date, rate, phone) =>
-      `✅ *बुकिंग Confirmed!*\n\n🌾 काम: *${skill}*\n👤 मजदूर: *${name}*\n📅 तारीख: ${date}\n💰 मजदूरी: ₹${rate}/दिन\n📞 संपर्क: ${phone}\n\n_मजदूर को notification भेजी गई है। सीधे संपर्क कर सकते हैं।_`,
-    en: (name, skill, date, rate, phone) =>
-      `✅ *Booking Confirmed!*\n\n🌾 Work: *${skill}*\n👤 Worker: *${name}*\n📅 Date: ${date}\n💰 Wage: ₹${rate}/day\n📞 Contact: ${phone}\n\n_Worker has been notified. You can contact them directly._`,
+  eq_booking_created_farmer: {
+    gu: (ownerName, phone) => `✅ રિક્વેસ્ટ ${ownerName} ને મોકલવામાં આવી છે. તેમનો નંબર: ${phone}. તેઓ જલ્દી કન્ફર્મ કરશે.`,
+    hi: (ownerName, phone) => `✅ रिक्वेस्ट ${ownerName} को भेज दी गई है। उनका नंबर: ${phone}। वे जल्द ही कन्फर्म करेंगे।`,
+    en: (ownerName, phone) => `✅ Request sent to ${ownerName}. Their number: ${phone}. They'll confirm soon.`
   },
 
-  // ── Owner/Worker Notification ────────────────────────────────────────────────
-
-  notify_owner_equipment: {
-    gu: (farmerName, type, date, rate, farmerPhone) =>
-      `🔔 *નવી બુકિંગ!*\n\n🚜 સાધન: *${type}*\n👤 ખેડૂત: *${farmerName}*\n📅 તારીખ: ${date}\n💰 ભાવ: ₹${rate}/દિવસ\n📞 સંપર્ક: ${farmerPhone}\n\n_KissanLink_`,
-    hi: (farmerName, type, date, rate, farmerPhone) =>
-      `🔔 *नई बुकिंग!*\n\n🚜 उपकरण: *${type}*\n👤 किसान: *${farmerName}*\n📅 तारीख: ${date}\n💰 किराया: ₹${rate}/दिन\n📞 संपर्क: ${farmerPhone}\n\n_KissanLink_`,
-    en: (farmerName, type, date, rate, farmerPhone) =>
-      `🔔 *New Booking!*\n\n🚜 Equipment: *${type}*\n👤 Farmer: *${farmerName}*\n📅 Date: ${date}\n💰 Rate: ₹${rate}/day\n📞 Contact: ${farmerPhone}\n\n_KissanLink_`,
+  eq_booking_request_provider: {
+    gu: (farmerName, farmerPhone, item, date, rate) => `🔔 ${farmerName} (${farmerPhone}) ને ${date} ના રોજ ₹${rate} માં તમારું ${item} જોઈએ છે.\n\nજવાબ આપો:\n1 મંજૂર કરવા\n2 ના પાડવા`,
+    hi: (farmerName, farmerPhone, item, date, rate) => `🔔 ${farmerName} (${farmerPhone}) को ${date} को ₹${rate} में आपका ${item} चाहिए।\n\nजवाब दें:\n1 मंजूर करने के लिए\n2 मना करने के लिए`,
+    en: (farmerName, farmerPhone, item, date, rate) => `🔔 ${farmerName} (${farmerPhone}) wants your ${item} on ${date} for ₹${rate}.\n\nReply:\n1 to Accept\n2 to Decline`
   },
 
-  notify_worker_labour: {
-    gu: (farmerName, skill, date, rate, farmerPhone) =>
-      `🔔 *કામ મળ્યું!*\n\n🌾 કામ: *${skill}*\n👤 ખેડૂત: *${farmerName}*\n📅 તારીખ: ${date}\n💰 મજૂરી: ₹${rate}/દિવસ\n📞 સંપર્ક: ${farmerPhone}\n\n_KissanLink_`,
-    hi: (farmerName, skill, date, rate, farmerPhone) =>
-      `🔔 *काम मिला!*\n\n🌾 काम: *${skill}*\n👤 किसान: *${farmerName}*\n📅 तारीख: ${date}\n💰 मजदूरी: ₹${rate}/दिन\n📞 संपर्क: ${farmerPhone}\n\n_KissanLink_`,
-    en: (farmerName, skill, date, rate, farmerPhone) =>
-      `🔔 *Work Assigned!*\n\n🌾 Work: *${skill}*\n👤 Farmer: *${farmerName}*\n📅 Date: ${date}\n💰 Wage: ₹${rate}/day\n📞 Contact: ${farmerPhone}\n\n_KissanLink_`,
+  lab_booking_created_farmer: {
+    gu: (workerName, phone) => `✅ રિક્વેસ્ટ ${workerName} ને મોકલવામાં આવી છે. તેમનો નંબર: ${phone}. તેઓ જલ્દી કન્ફર્મ કરશે.`,
+    hi: (workerName, phone) => `✅ रिक्वेस्ट ${workerName} को भेज दी गई है। उनका नंबर: ${phone}। वे जल्द ही कन्फर्म करेंगे।`,
+    en: (workerName, phone) => `✅ Request sent to ${workerName}. Their number: ${phone}. They'll confirm soon.`
+  },
+
+  lab_booking_request_provider: {
+    gu: (farmerName, farmerPhone, skill, date, rate) => `🔔 ${farmerName} (${farmerPhone}) ને ${date} ના રોજ ₹${rate} માં તમારું ${skill} કામ જોઈએ છે.\n\nજવાબ આપો:\n1 મંજૂર કરવા\n2 ના પાડવા`,
+    hi: (farmerName, farmerPhone, skill, date, rate) => `🔔 ${farmerName} (${farmerPhone}) को ${date} को ₹${rate} में आपका ${skill} काम चाहिए।\n\nजवाब दें:\n1 मंजूर करने के लिए\n2 मना करने के लिए`,
+    en: (farmerName, farmerPhone, skill, date, rate) => `🔔 ${farmerName} (${farmerPhone}) wants your ${skill} work on ${date} for ₹${rate}.\n\nReply:\n1 to Accept\n2 to Decline`
+  },
+
+  booking_confirmed_farmer: {
+    gu: (providerName, date) => `✅ ${providerName} એ ${date} માટે તમારું બુકિંગ કન્ફર્મ કર્યું છે!`,
+    hi: (providerName, date) => `✅ ${providerName} ने ${date} के लिए आपकी बुकिंग कन्फर्म कर दी है!`,
+    en: (providerName, date) => `✅ ${providerName} confirmed your booking for ${date}!`
+  },
+
+  booking_confirmed_provider: {
+    gu: (farmerName) => `✅ ${farmerName} સાથે બુકિંગ કન્ફર્મ થયું.`,
+    hi: (farmerName) => `✅ ${farmerName} के साथ बुकिंग कन्फर्म हुई।`,
+    en: (farmerName) => `✅ Booking confirmed with ${farmerName}.`
+  },
+
+  booking_declined_farmer: {
+    gu: (providerName) => `માફ કરજો, ${providerName} એ ના પાડી છે. અહીં અન્ય વિકલ્પો છે...`,
+    hi: (providerName) => `माफ़ करें, ${providerName} ने मना कर दिया है। यहाँ अन्य विकल्प हैं...`,
+    en: (providerName) => `Sorry, ${providerName} declined. Here are other options...`
+  },
+
+  booking_expired: {
+    gu: `⏰ તમારી બુકિંગ રિક્વેસ્ટ એક્સપાયર થઈ ગઈ છે (8 કલાક). કૃપા કરીને બીજા પ્રોવાઈડરનો પ્રયાસ કરો.`,
+    hi: `⏰ आपकी बुकिंग रिक्वेस्ट एक्सपायर हो गई है (8 घंटे)। कृपया दूसरे प्रोवाइडर का प्रयास करें।`,
+    en: `⏰ Your booking request expired (8 hours). Try another provider.`
   },
 
   // ── Rating ───────────────────────────────────────────────────────────────────
@@ -277,9 +337,6 @@ const strings = {
     en: ['✏️ Change Name', '📍 Update Location', '🌐 Change Language', '🔙 Main Menu'],
   },
 
-  // note: profile option 4 = back to main menu (handled in profile handler)
-  // type 0 at any point also returns to main menu
-
   // ── Generic ──────────────────────────────────────────────────────────────────
 
   system_error: {
@@ -289,15 +346,9 @@ const strings = {
   },
 
   invalid_input: {
-    gu: `⚠️ માફ કરજો, હું સમજ્યો નહીં. નીચેના વિકલ્પોમાંથી પસંდ કરો.`,
+    gu: `⚠️ માફ કરજો, હું સમજ્યો નહીં. નીચેના વિકલ્પોમાંથી પસંદ કરો.`,
     hi: `⚠️ माफ करें, मैं समझ नहीं पाया. नीचे के विकल्पों में से चुनें.`,
     en: `⚠️ Sorry, I didn't understand. Please choose from the options below.`,
-  },
-
-  invalid_date: {
-    gu: `⚠️ ખોટી તારીખ. DD-MM-YYYY ફોર્મેટ માં ટાઈપ કરો (જેમ કે 20-06-2026):`,
-    hi: `⚠️ गलत तारीख. DD-MM-YYYY फॉर्मेट में टाइप करें (जैसे 20-06-2026):`,
-    en: `⚠️ Invalid date. Type in DD-MM-YYYY format (e.g. 20-06-2026):`,
   },
 
   invalid_number: {

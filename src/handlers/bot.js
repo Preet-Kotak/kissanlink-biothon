@@ -9,7 +9,7 @@ const { handleLabourSearch } = require('./labourSearch');
 const { handleLabourList } = require('./labourList');
 const { handleProfile } = require('./profile');
 const { handleRating } = require('./rating');
-
+const { handleBookingResponse } = require('./bookingResponse');
 /**
  * Log state transitions in JSON format for debugging (Task 4 - Part 7)
  */
@@ -61,6 +61,11 @@ async function handleMessage(user, body, location, media) {
       return showMainMenu(fresh, lang);
     }
 
+    // ── TASK 1: Two-Sided Booking Handshake ───────────────────────────────────
+    if (state === 'AWAITING_BOOKING_RESPONSE') {
+      return handleBookingResponse(user, body, lang);
+    }
+
     // ── Onboarding states ─────────────────────────────────────────────────────
     if (!user.isRegistered || ['NEW', 'AWAITING_LANGUAGE', 'AWAITING_NAME', 'AWAITING_LOCATION'].includes(state)) {
       return handleOnboarding(user, body, location, lang);
@@ -71,7 +76,7 @@ async function handleMessage(user, body, location, media) {
       return handleProfile(user, body, location, lang);
     }
 
-    // ── Equipment search states ───────────────────────────────────────────────
+    // ── TASK 1: Equipment search states (Date First) ──────────────────────────
     if (state.startsWith('EQ_SEARCH')) {
       return handleEquipmentSearch(user, body, location, lang);
     }
@@ -81,7 +86,7 @@ async function handleMessage(user, body, location, media) {
       return handleEquipmentList(user, body, location, lang, media);
     }
 
-    // ── Labour search states ──────────────────────────────────────────────────
+    // ── TASK 1: Labour search states (Date First) ─────────────────────────────
     if (state.startsWith('LAB_SEARCH')) {
       return handleLabourSearch(user, body, location, lang);
     }

@@ -1,148 +1,249 @@
-const User = require('../models/User');
-const EquipmentListing = require('../models/EquipmentListing');
 const Booking = require('../models/Booking');
+const EquipmentListing = require('../models/EquipmentListing');
+const User = require('../models/User');
+const { sendMessage } = require('../services/twilio');
 const { t, strings } = require('../lang/strings');
-const { sendMessage, sendMenu } = require('../services/twilio');
+const { parseDate, getQuickDateOptions, formatDateForDisplay } = require('../utils/dateUtils');
 const { showMainMenu } = require('./mainMenu');
-const { distanceKm, formatDistance, findNearbyEquipment } = require('../services/location');
-const { parseDate, formatDate, dateFromTimestamp } = require('../utils/dateUtils');
 
 /**
- * Equipment search + booking flow
- * States: EQ_SEARCH_TYPE → EQ_SEARCH_DATE → EQ_SEARCH_RESULTS → EQ_SEARCH_CONFIRM
+ * Helper: Calculate distance in KM using Haversine formula
+ */
+function calculateDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371; // Radius of Earth in km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return (R * c).toFixed(1);
+}
+
+/**
+ * Core Algorithm: Smart Filter (Task 1 & Task 4 multi-day safety)
+ */
+async function getAvailableEquipmentListings(type, dateObj, coordinates) {
+  // Set to midnight UTC for exact matching
+  const targetDate = new Date(dateObj);
+  targetDate.setHours(0, 0, 0, 0);
+
+  // Step 1: Find all conflicting bookings for this date
+  const bookedListingIds = await Booking.find({
+    status: { $in: ['pending', 'confirmed'] },
+    $or: [
+      { bookingDate: targetDate },
+      { startDate: { $lte: targetDate }, endDate: { $gte: targetDate } }
+    ]
+  }).distinct('listingId');
+
+  const baseQuery = {
+    type: type,
+    available: true,
+    _id: { $nin: bookedListingIds },
+    blockedDates: { $ne: targetDate }
+  };
+
+  // Step 2: Geospatial search (10km radius)
+  let listings = await EquipmentListing.find({
+    ...baseQuery,
+    location: {
+      $near: {
+        $geometry: { type: 'Point', coordinates: coordinates },
+        $maxDistance: 10000 
+      }
+    }
+  }).limit(3).lean();
+
+  // Step 3: Expand to 20km if no results found
+  if (listings.length <3) {
+    listings = await EquipmentListing.find({
+      ...baseQuery,
+      location: {
+        $near: {
+          $geometry: { type: 'Point', coordinates: coordinates },
+          $maxDistance: 20000 
+        }
+      }
+    }).limit(3).lean();
+  }
+
+  return listings;
+}
+
+/**
+ * Main Router for Equipment Search States
  */
 async function handleEquipmentSearch(user, body, location, lang) {
+  const state = user.state;
+  const text = body.trim();
 
-  switch (user.state) {
-
-    // ── Pick equipment type ───────────────────────────────────────────────────
-    case 'EQ_SEARCH_TYPE': {
-      const choice = parseInt(body);
-      if (choice === 6) { await user.updateOne({ state: 'MAIN_MENU', tempData: {} }); return showMainMenu(user, lang); }
-      if (!choice || choice < 1 || choice > strings.equipment_types_raw.length) {
-        await sendMenu(user.phone, t('ask_equipment_type', lang), strings.equipment_types[lang]);
-        break;
+  try {
+    // ── STATE: INITIAL DATE PROMPT ──────────────────────────────────────────
+    if (state === 'EQ_SEARCH_DATE') {
+      const { tomorrow, inOneWeek } = getQuickDateOptions();
+      
+      if (text === '1') {
+        await user.updateOne({ state: 'EQ_SEARCH_TYPE', 'tempData.bookingDate': tomorrow });
+        return sendEquipmentTypePrompt(user.phone, lang);
+      } 
+      if (text === '2') {
+        await user.updateOne({ state: 'EQ_SEARCH_TYPE', 'tempData.bookingDate': inOneWeek });
+        return sendEquipmentTypePrompt(user.phone, lang);
+      } 
+      if (text === '3') {
+        await user.updateOne({ state: 'EQ_SEARCH_DATE_CUSTOM' });
+        return sendMessage(user.phone, t('eq_search_date_custom_prompt', lang) + t('back_hint', lang));
       }
-      const eqType = strings.equipment_types_raw[choice - 1];
-      await user.updateOne({ state: 'EQ_SEARCH_DATE', tempData: { eqType } });
-      await sendMessage(user.phone, t('ask_booking_date', lang) + '\n' + t('back_hint', lang));
-      break;
+
+      // Invalid selection, re-prompt
+      const prompt = t('eq_search_date_prompt', lang, formatDateForDisplay(tomorrow), formatDateForDisplay(inOneWeek));
+      return sendMessage(user.phone, t('invalid_input', lang) + '\n\n' + prompt);
     }
 
-    // ── Enter booking date ────────────────────────────────────────────────────
-    case 'EQ_SEARCH_DATE': {
-      const date = parseDate(body.trim());
-      if (!date) {
-        await sendMessage(user.phone, t('invalid_date', lang));
-        break;
+    // ── STATE: CUSTOM DATE INPUT ─────────────────────────────────────────────
+    if (state === 'EQ_SEARCH_DATE_CUSTOM') {
+      const parsed = parseDate(text, 30);
+      
+      if (!parsed.valid) {
+        let errorMsg = t('date_invalid_format', lang);
+        if (parsed.reason === 'PAST_DATE') errorMsg = t('date_in_past', lang);
+        if (parsed.reason === 'TOO_FAR_AHEAD') errorMsg = t('date_too_far_ahead', lang);
+        
+        return sendMessage(user.phone, errorMsg + '\n\n' + t('eq_search_date_custom_prompt', lang) + t('back_hint', lang));
       }
-      const eqType = user.tempData.eqType;
-      await user.updateOne({ $set: { 'tempData.bookingDate': date.getTime(), state: 'EQ_SEARCH_RESULTS' } });
 
-      // Find nearby listings — 10km first, fallback to 20km
-      const { listings, radiusKm } = await findNearbyEquipment(user.location.coordinates, eqType);
+      await user.updateOne({ state: 'EQ_SEARCH_TYPE', 'tempData.bookingDate': parsed.date });
+      return sendEquipmentTypePrompt(user.phone, lang);
+    }
+
+    // ── STATE: TYPE SELECTION & SMART FILTER EXECUTION ───────────────────────
+    if (state === 'EQ_SEARCH_TYPE') {
+      const typeIndex = parseInt(text, 10) - 1;
+      const typesRaw = strings.equipment_types_raw;
+
+      if (isNaN(typeIndex) || typeIndex < 0 || typeIndex >= typesRaw.length) {
+        return sendEquipmentTypePrompt(user.phone, lang, true);
+      }
+
+      const selectedType = typesRaw[typeIndex];
+      const targetDate = new Date(user.tempData.bookingDate);
+      
+      // Execute the Smart Filter
+      const listings = await getAvailableEquipmentListings(selectedType, targetDate, user.location.coordinates);
 
       if (listings.length === 0) {
-        const noFound = t('no_equipment_found', lang).replace('{type}', eqType);
-        await sendMessage(user.phone, noFound);
-        await showMainMenu(user, lang);
-        break;
+        await sendMessage(user.phone, t('no_listings_found', lang));
+        await user.updateOne({ state: 'MAIN_MENU', tempData: {} });
+        return showMainMenu(user, lang);
       }
 
-      // Build result cards
-      const userCoords = user.location.coordinates;
-      let msg = t('equipment_results_header', lang, eqType, radiusKm) + '\n\n';
-      listings.forEach((l, i) => {
-        const ownerUser = null; // we'll enrich from listing data
-        const dist = formatDistance(distanceKm(userCoords, l.location.coordinates));
-        const rating = l.ratingCount > 0 ? `${l.rating.toFixed(1)}⭐` : '—';
-        msg += t('equipment_card', lang, i + 1, l.ownerName || '—', l.village || '—', l.dailyRate, rating, dist);
-        msg += '\n\n';
+      // Format results and save them to session
+      let resultText = t('eq_search_results_header', lang) + '\n\n';
+      const savedResults = [];
+
+      listings.forEach((listing, index) => {
+        const dist = calculateDistance(
+          user.location.coordinates[1], user.location.coordinates[0],
+          listing.location.coordinates[1], listing.location.coordinates[0]
+        );
+        const rating = listing.rating ? listing.rating.toFixed(1) : 'New';
+        
+        resultText += t('equipment_card', lang, index + 1, listing.ownerName, listing.village || 'Nearby', listing.dailyRate, rating, dist + 'km') + '\n\n';
+        savedResults.push(listing._id.toString());
       });
 
-      // Store listing IDs in tempData for confirmation step
-      const listingIds = listings.map((l) => l._id.toString());
-      await user.updateOne({
-        $set: {
-          state: 'EQ_SEARCH_CONFIRM',
-          'tempData.listingIds': listingIds,
-        },
+      resultText += t('eq_search_results_footer', lang);
+
+      await user.updateOne({ 
+        state: 'EQ_SEARCH_RESULTS', 
+        'tempData.searchResults': savedResults,
+        'tempData.selectedType': selectedType
       });
 
-      msg += t('ask_select_listing', lang);
-      await sendMessage(user.phone, msg);
-      break;
+      return sendMessage(user.phone, resultText);
     }
 
-    // ── Confirm booking ───────────────────────────────────────────────────────
-    case 'EQ_SEARCH_CONFIRM': {
-      const choice = parseInt(body);
-      const listingIds = user.tempData.listingIds || [];
+    // ── STATE: BOOKING CONFIRMATION & HANDSHAKE ──────────────────────────────
+    if (state === 'EQ_SEARCH_RESULTS') {
+      const choiceIndex = parseInt(text, 10) - 1;
+      const savedResults = user.tempData.searchResults || [];
 
-      if (!choice || choice < 1 || choice > listingIds.length) {
-        await sendMessage(user.phone, t('invalid_input', lang));
-        break;
+      if (isNaN(choiceIndex) || choiceIndex < 0 || choiceIndex >= savedResults.length) {
+        return sendMessage(user.phone, t('invalid_number', lang));
       }
 
-      const listing = await EquipmentListing.findById(listingIds[choice - 1]);
-      if (!listing) {
-        await sendMessage(user.phone, t('invalid_input', lang));
-        break;
+      const selectedListingId = savedResults[choiceIndex];
+      const targetDate = new Date(user.tempData.bookingDate);
+
+      // Race Condition Check: Ensure it wasn't booked in the last 30 seconds
+      const isStillAvailable = await getAvailableEquipmentListings(user.tempData.selectedType, targetDate, user.location.coordinates);
+      if (!isStillAvailable.find(l => l._id.toString() === selectedListingId)) {
+        return sendMessage(user.phone, t('listing_just_booked', lang));
       }
 
-      // Re-fetch user to get latest tempData from DB
-      const freshUser = await User.findOne({ phone: user.phone });
-      const bookingDate = dateFromTimestamp(freshUser.tempData?.bookingDate);
-      if (!bookingDate) {
-        // tempData lost — restart the flow
-        await user.updateOne({ state: 'EQ_SEARCH_TYPE', tempData: {} });
-        await sendMessage(user.phone, t('invalid_input', lang));
-        await showMainMenu(user, lang);
-        break;
-      }
-
+      const listing = await EquipmentListing.findById(selectedListingId);
       const owner = await User.findById(listing.ownerId);
 
-      // Create booking
+      // 1. Create the Pending Booking
       const booking = await Booking.create({
         type: 'equipment',
         listingId: listing._id,
         farmerId: user._id,
         farmerPhone: user.phone,
-        farmerName: user.name,
-        providerId: listing.ownerId,
-        providerPhone: listing.ownerPhone,
-        providerName: listing.ownerName || owner?.name || '—',
-        bookingDate,
-        status: 'confirmed',
+        farmerName: user.name || 'Farmer',
+        providerId: owner._id,
+        providerPhone: owner.phone,
+        providerName: owner.name || 'Owner',
+        bookingDate: targetDate,
+        startDate: targetDate,
+        endDate: targetDate,
+        rate: listing.dailyRate,
+        itemName: listing.type,
+        status: 'pending'
       });
 
-      // Format phone for display (strip whatsapp: prefix)
-      const ownerDisplayPhone = listing.ownerPhone.replace('whatsapp:', '');
-      const dateStr = formatDate(bookingDate);
+      // 2. Notify Farmer immediately with Owner's contact
+      await sendMessage(user.phone, t('eq_booking_created_farmer', lang, owner.name || 'the owner', owner.phone));
 
-      // Confirm to farmer
-      await sendMessage(
-        user.phone,
-        t('booking_confirm_equipment', lang, listing.ownerName || owner?.name || '—', listing.type, dateStr, listing.dailyRate, ownerDisplayPhone)
-      );
+      // 3. Notify Owner and set state to await response
+      const ownerLang = owner.language || 'gu';
+      const dateStr = formatDateForDisplay(targetDate);
+      
+      await sendMessage(owner.phone, t('eq_booking_request_provider', ownerLang, user.name || 'A farmer', user.phone, listing.type, dateStr, listing.dailyRate));
+      
+      await owner.updateOne({
+        state: 'AWAITING_BOOKING_RESPONSE',
+        'tempData.pendingBookingId': booking._id
+      });
 
-      // Notify owner
-      const ownerLang = owner?.language || 'gu';
-      const farmerDisplayPhone = user.phone.replace('whatsapp:', '');
-      await sendMessage(
-        listing.ownerPhone,
-        t('notify_owner_equipment', ownerLang, user.name, listing.type, dateStr, listing.dailyRate, farmerDisplayPhone)
-      );
-
+      // 4. Reset Farmer to Main Menu
       await user.updateOne({ state: 'MAIN_MENU', tempData: {} });
-      await showMainMenu(user, lang);
-      break;
+      return showMainMenu(user, lang);
     }
 
-    default:
-      await showMainMenu(user, lang);
+  } catch (err) {
+    console.error('[EquipmentSearch] Error:', err);
+    await sendMessage(user.phone, t('system_error', lang));
+    await user.updateOne({ state: 'MAIN_MENU', tempData: {} });
+    return showMainMenu(user, lang);
   }
 }
 
-module.exports = { handleEquipmentSearch };
+/**
+ * Reusable helper to send the Equipment Type menu
+ */
+async function sendEquipmentTypePrompt(phone, lang, isError = false) {
+  const types = t('equipment_types', lang);
+  let msg = isError ? t('invalid_input', lang) + '\n\n' : '';
+  msg += t('ask_equipment_type', lang) + '\n';
+  
+  types.forEach((type, index) => {
+    msg += `\n${index + 1}. ${type}`;
+  });
+  
+  msg += '\n\n' + t('back_hint', lang);
+  return sendMessage(phone, msg);
+}
+
+module.exports = { handleEquipmentSearch, sendEquipmentTypePrompt, getAvailableEquipmentListings };
