@@ -51,6 +51,130 @@ const strings = {
     en: `📅 My Bookings\n\n_This feature will be available soon._`,
   },
 
+  // ── My Bookings (Task 4 - Part 10) ──────────────────────────────────────────
+
+  my_bookings_header: {
+    gu: `📅 *મારા Bookings*`,
+    hi: `📅 *मेरे Bookings*`,
+    en: `📅 *My Bookings*`,
+  },
+
+  my_bookings_empty: {
+    gu: `📭 કોઈ active bookings નથી.\n\nસાધન book કરો અથવા સેવાઓ આપો મુખ્ય મેનૂ થી.`,
+    hi: `📭 कोई active bookings नहीं।\n\nउपकरण book करें या सेवाएं दें मुख्य मेनू से.`,
+    en: `📭 No active bookings.\n\nBook equipment or offer services from main menu.`,
+  },
+
+  my_bookings_footer: {
+    gu: `સંખ્યા પસંદ કરો અથવા 0 માટે મુખ્ય મેનૂ`,
+    hi: `संख्या चुनें या 0 मुख्य मेनू`,
+    en: `Select number or 0 for main menu`,
+  },
+
+  booking_detail_message: {
+    gu: (item, date, dailyRate, totalRate, status, otherName, otherPhone, bookingId) =>
+      `📋 *બુકિંગ વિગતો*\n\n` +
+      `🚜 વસ્તુ: ${item}\n` +
+      `📅 તારીખ: ${date}\n` +
+      `💰 દર: ₹${dailyRate}/દિવસ (કુલ: ₹${totalRate})\n` +
+      `${status}\n` +
+      `👤 ${otherName}\n` +
+      `📞 ${otherPhone}\n` +
+      `🆔 બુકિંગ ID: ${bookingId}\n\n` +
+      `1. બુકિંગ રદ કરો\n` +
+      `2. ${otherName} ને સંપર્ક કરો\n` +
+      `0. પાછળ`,
+    hi: (item, date, dailyRate, totalRate, status, otherName, otherPhone, bookingId) =>
+      `📋 *बुकिंग विवरण*\n\n` +
+      `🚜 वस्तु: ${item}\n` +
+      `📅 तारीख: ${date}\n` +
+      `💰 किराया: ₹${dailyRate}/दिन (कुल: ₹${totalRate})\n` +
+      `${status}\n` +
+      `👤 ${otherName}\n` +
+      `📞 ${otherPhone}\n` +
+      `🆔 बुकिंग ID: ${bookingId}\n\n` +
+      `1. बुकिंग रद्द करें\n` +
+      `2. ${otherName} से संपर्क करें\n` +
+      `0. वापस`,
+    en: (item, date, dailyRate, totalRate, status, otherName, otherPhone, bookingId) =>
+      `📋 *Booking Details*\n\n` +
+      `🚜 Item: ${item}\n` +
+      `📅 Date: ${date}\n` +
+      `💰 Rate: ₹${dailyRate}/day (Total: ₹${totalRate})\n` +
+      `${status}\n` +
+      `👤 ${otherName}\n` +
+      `📞 ${otherPhone}\n` +
+      `🆔 Booking ID: ${bookingId}\n\n` +
+      `1. Cancel Booking\n` +
+      `2. Contact ${otherName}\n` +
+      `0. Back`,
+  },
+
+  booking_not_found: {
+    gu: `⚠️ Booking મળી નથી. મુખ્ય મેનૂ પર પાછા જાઓ.`,
+    hi: `⚠️ Booking नहीं मिली. मुख्य मेनू पर वापस जाएं.`,
+    en: `⚠️ Booking not found. Returning to main menu.`,
+  },
+
+  cancel_booking_confirm: {
+    gu: (name, date) => `${name} સાથેની ${date}ની બુકિંગ રદ કરવી છે?\n\n1 લખો રદ કરવા અથવા 0 મુખ્ય મેનૂ માટે.`,
+    hi: (name, date) => `${name} के साथ ${date} की बुकिंग रद्द करनी है?\n\n1 लिखें रद्द करने के लिए या 0 मुख्य मेनू.`,
+    en: (name, date) => `Cancel booking with ${name} on ${date}?\n\nType 1 to confirm or 0 for main menu.`,
+  },
+
+  type_1_or_0: {
+    gu: `કૃપા કરીને 1 લખો રદ કરવા અથવા 0 મુખ્ય મેનૂ માટે.`,
+    hi: `कृपया 1 लिखें रद्द करने के लिए या 0 मुख्य मेनू.`,
+    en: `Please type 1 to confirm cancellation or 0 for main menu.`,
+  },
+
+  cancellation_reason_prompt: {
+    gu: `રદ કરવાનું કારણ?\n\n1 લખો છોડી દેવા માટે અથવા કારણ લખો.`,
+    hi: `रद्द करने का कारण?\n\n1 लिखें छोड़ने के लिए या कारण लिखें.`,
+    en: `Reason for cancellation?\n\nType 1 to skip or enter reason.`,
+  },
+
+  booking_cancelled_success: {
+    gu: `✅ Booking cancelled. બીજી પાર્ટીને notify કર્યા છે.`,
+    hi: `✅ Booking cancelled. दूसरी पार्टी को notify किया गया.`,
+    en: `✅ Booking cancelled. Other party has been notified.`,
+  },
+
+  booking_cancelled_notification: {
+    gu: (canceller, item, date, reason) =>
+      `❌ ${canceller}એ ${date}ની ${item} booking cancel કરી.\n\nકારણ: ${reason}`,
+    hi: (canceller, item, date, reason) =>
+      `❌ ${canceller} ने ${date} की ${item} booking cancel की।\n\nकारण: ${reason}`,
+    en: (canceller, item, date, reason) =>
+      `❌ ${canceller} cancelled the ${item} booking for ${date}.\n\nReason: ${reason}`,
+  },
+
+  contact_info: {
+    gu: (name, phone) => `📞 ${name}\nફોન: ${phone}`,
+    hi: (name, phone) => `📞 ${name}\nफोन: ${phone}`,
+    en: (name, phone) => `📞 ${name}\nPhone: ${phone}`,
+  },
+
+  // ── Multi-Day Bookings (Task 4 - Part 3) ────────────────────────────────────
+
+  booking_days_prompt: {
+    gu: `કેટલા દિવસ માટે જોઈએ છે?\n\n1. એક દિવસ\n2. ઘણા દિવસ (સંખ્યા દાખલ કરો)\n0. મુખ્ય મેનૂ`,
+    hi: `कितने दिन के लिए चाहिए?\n\n1. एक दिन\n2. कई दिन (संख्या दर्ज करें)\n0. मुख्य मेनू`,
+    en: `How many days?\n\n1. Single day\n2. Multiple days (enter number)\n0. Main menu`,
+  },
+
+  booking_days_custom_prompt: {
+    gu: `કેટલા દિવસ માટે જોઈએ છે? (1-30 દાખલ કરો):`,
+    hi: `कितने दिन के लिए चाहिए? (1-30 दर्ज करें):`,
+    en: `How many days do you need? (Enter 1-30):`,
+  },
+
+  invalid_days: {
+    gu: `⚠️ અમાન્ય દિવસો. 1 થી 30 ની વચ્ચે સંખ્યા દાખલ કરો.`,
+    hi: `⚠️ अमान्य दिन. 1 से 30 के बीच संख्या दर्ज करें.`,
+    en: `⚠️ Invalid days. Enter a number between 1 and 30.`,
+  },
+
   // ── TASK 1: Enhanced Date Selection UI ─────────────────────────────────────
 
   eq_search_date_prompt: {

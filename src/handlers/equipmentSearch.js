@@ -174,56 +174,120 @@ async function handleEquipmentSearch(user, body, location, lang) {
       }
 
       const selectedListingId = savedResults[choiceIndex];
-      const targetDate = new Date(user.tempData.bookingDate);
+      
+      // Store selected listing and move to days selection (Task 4 - Part 3)
+      await user.updateOne({
+        state: 'EQ_SEARCH_DAYS',
+        'tempData.selectedListingId': selectedListingId
+      });
+      
+      return sendMessage(user.phone, t('booking_days_prompt', lang));
+    }
 
-      // Race Condition Check: Ensure it wasn't booked in the last 30 seconds
-      const isStillAvailable = await getAvailableEquipmentListings(user.tempData.selectedType, targetDate, user.location.coordinates);
-      if (!isStillAvailable.find(l => l._id.toString() === selectedListingId)) {
-        return sendMessage(user.phone, t('listing_just_booked', lang));
+    // ── STATE: MULTI-DAY SELECTION (Task 4 - Part 3) ─────────────────────────
+    if (state === 'EQ_SEARCH_DAYS') {
+      if (text === '1') {
+        // Single day booking
+        return await createEquipmentBooking(user, 1, lang);
+      } else if (text === '2') {
+        // Ask for custom number of days
+        await user.updateOne({ state: 'EQ_SEARCH_DAYS_CUSTOM' });
+        return sendMessage(user.phone, t('booking_days_custom_prompt', lang));
+      } else {
+        return sendMessage(user.phone, t('invalid_input', lang) + '\n\n' + t('booking_days_prompt', lang));
       }
+    }
 
-      const listing = await EquipmentListing.findById(selectedListingId);
-      const owner = await User.findById(listing.ownerId);
-
-      // 1. Create the Pending Booking
-      const booking = await Booking.create({
-        type: 'equipment',
-        listingId: listing._id,
-        farmerId: user._id,
-        farmerPhone: user.phone,
-        farmerName: user.name || 'Farmer',
-        providerId: owner._id,
-        providerPhone: owner.phone,
-        providerName: owner.name || 'Owner',
-        bookingDate: targetDate,
-        startDate: targetDate,
-        endDate: targetDate,
-        rate: listing.dailyRate,
-        itemName: listing.type,
-        status: 'pending'
-      });
-
-      // 2. Notify Farmer immediately with Owner's contact
-      await sendMessage(user.phone, t('eq_booking_created_farmer', lang, owner.name || 'the owner', owner.phone));
-
-      // 3. Notify Owner and set state to await response
-      const ownerLang = owner.language || 'gu';
-      const dateStr = formatDateForDisplay(targetDate);
+    // ── STATE: CUSTOM DAYS INPUT (Task 4 - Part 3) ───────────────────────────
+    if (state === 'EQ_SEARCH_DAYS_CUSTOM') {
+      const days = parseInt(text, 10);
       
-      await sendMessage(owner.phone, t('eq_booking_request_provider', ownerLang, user.name || 'A farmer', user.phone, listing.type, dateStr, listing.dailyRate));
+      if (isNaN(days) || days < 1 || days > 30) {
+        return sendMessage(user.phone, t('invalid_days', lang) + '\n\n' + t('booking_days_custom_prompt', lang));
+      }
       
-      await owner.updateOne({
-        state: 'AWAITING_BOOKING_RESPONSE',
-        'tempData.pendingBookingId': booking._id
-      });
-
-      // 4. Reset Farmer to Main Menu
-      await user.updateOne({ state: 'MAIN_MENU', tempData: {} });
-      return showMainMenu(user, lang);
+      return await createEquipmentBooking(user, days, lang);
     }
 
   } catch (err) {
     console.error('[EquipmentSearch] Error:', err);
+    await sendMessage(user.phone, t('system_error', lang));
+    await user.updateOne({ state: 'MAIN_MENU', tempData: {} });
+    return showMainMenu(user, lang);
+  }
+}
+
+/**
+ * Create equipment booking with multi-day support (Task 4 - Part 3)
+ */
+async function createEquipmentBooking(user, days, lang) {
+  try {
+    const selectedListingId = user.tempData.selectedListingId;
+    const targetDate = new Date(user.tempData.bookingDate);
+    targetDate.setHours(0, 0, 0, 0);
+    
+    // Calculate end date
+    const endDate = new Date(targetDate);
+    endDate.setDate(endDate.getDate() + days - 1);
+
+    // Race Condition Check: Ensure it wasn't booked in the last 30 seconds
+    const isStillAvailable = await getAvailableEquipmentListings(user.tempData.selectedType, targetDate, user.location.coordinates);
+    if (!isStillAvailable.find(l => l._id.toString() === selectedListingId)) {
+      return sendMessage(user.phone, t('listing_just_booked', lang));
+    }
+
+    const listing = await EquipmentListing.findById(selectedListingId);
+    const owner = await User.findById(listing.ownerId);
+
+    // 1. Create the Pending Booking with multi-day support
+    const booking = await Booking.create({
+      type: 'equipment',
+      listingId: listing._id,
+      farmerId: user._id,
+      farmerPhone: user.phone,
+      farmerName: user.name || 'Farmer',
+      providerId: owner._id,
+      providerPhone: owner.phone,
+      providerName: owner.name || 'Owner',
+      bookingDate: targetDate,
+      startDate: targetDate,
+      endDate: endDate,
+      days: days,
+      rate: listing.dailyRate,
+      itemName: listing.type,
+      status: 'pending'
+    });
+
+    // 2. Notify Farmer immediately with Owner's contact
+    const dateDisplay = days > 1 
+      ? `${formatDateForDisplay(targetDate)} to ${formatDateForDisplay(endDate)} (${days} days)`
+      : formatDateForDisplay(targetDate);
+    const totalCost = listing.dailyRate * days;
+    
+    await sendMessage(user.phone, 
+      t('eq_booking_created_farmer', lang, owner.name || 'the owner', owner.phone) + 
+      `\n\n📅 ${dateDisplay}\n💰 Total: ₹${totalCost}`
+    );
+
+    // 3. Notify Owner and set state to await response
+    const ownerLang = owner.language || 'gu';
+    
+    await sendMessage(owner.phone, 
+      t('eq_booking_request_provider', ownerLang, user.name || 'A farmer', user.phone, listing.type, dateDisplay, listing.dailyRate) +
+      (days > 1 ? `\n\n💰 Total: ₹${totalCost} (${days} days)` : '')
+    );
+    
+    await owner.updateOne({
+      state: 'AWAITING_BOOKING_RESPONSE',
+      'tempData.pendingBookingId': booking._id
+    });
+
+    // 4. Reset Farmer to Main Menu
+    await user.updateOne({ state: 'MAIN_MENU', tempData: {} });
+    return showMainMenu(user, lang);
+    
+  } catch (err) {
+    console.error('[equipmentSearch] Error creating booking:', err);
     await sendMessage(user.phone, t('system_error', lang));
     await user.updateOne({ state: 'MAIN_MENU', tempData: {} });
     return showMainMenu(user, lang);
@@ -246,4 +310,4 @@ async function sendEquipmentTypePrompt(phone, lang, isError = false) {
   return sendMessage(phone, msg);
 }
 
-module.exports = { handleEquipmentSearch, sendEquipmentTypePrompt, getAvailableEquipmentListings };
+module.exports = { handleEquipmentSearch, sendEquipmentTypePrompt, getAvailableEquipmentListings, createEquipmentBooking };

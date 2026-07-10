@@ -3,8 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const webhookRouter = require('./routes/webhook');
 const cron = require('node-cron');
-const { processCompletedBookings } = require('./handlers/rating');
-const { expirePendingBookings } = require('./utils/cronJobs');
+const { expirePendingBookings, processCompletedBookings } = require('./utils/cronJobs');
 
 const app = express();
 app.use(express.urlencoded({ extended: false }));

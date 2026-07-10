@@ -171,56 +171,120 @@ async function handleLabourSearch(user, body, location, lang) {
       }
 
       const selectedListingId = savedResults[choiceIndex];
-      const targetDate = new Date(user.tempData.bookingDate);
+      
+      // Store selected listing and move to days selection (Task 4 - Part 3)
+      await user.updateOne({
+        state: 'LAB_SEARCH_DAYS',
+        'tempData.selectedListingId': selectedListingId
+      });
+      
+      return sendMessage(user.phone, t('booking_days_prompt', lang));
+    }
 
-      // Race Condition Check
-      const isStillAvailable = await getAvailableLabourListings(user.tempData.selectedSkill, targetDate, user.location.coordinates);
-      if (!isStillAvailable.find(l => l._id.toString() === selectedListingId)) {
-        return sendMessage(user.phone, t('listing_just_booked', lang));
+    // ── STATE: MULTI-DAY SELECTION (Task 4 - Part 3) ─────────────────────────
+    if (state === 'LAB_SEARCH_DAYS') {
+      if (text === '1') {
+        // Single day booking
+        return await createLabourBooking(user, 1, lang);
+      } else if (text === '2') {
+        // Ask for custom number of days
+        await user.updateOne({ state: 'LAB_SEARCH_DAYS_CUSTOM' });
+        return sendMessage(user.phone, t('booking_days_custom_prompt', lang));
+      } else {
+        return sendMessage(user.phone, t('invalid_input', lang) + '\n\n' + t('booking_days_prompt', lang));
       }
+    }
 
-      const listing = await LabourListing.findById(selectedListingId);
-      const worker = await User.findById(listing.workerId);
-
-      // 1. Create Pending Booking
-      const booking = await Booking.create({
-        type: 'labour',
-        listingId: listing._id,
-        farmerId: user._id,
-        farmerPhone: user.phone,
-        farmerName: user.name || 'Farmer',
-        providerId: worker._id,
-        providerPhone: worker.phone,
-        providerName: worker.name || 'Worker',
-        bookingDate: targetDate,
-        startDate: targetDate,
-        endDate: targetDate,
-        rate: listing.dailyRate,
-        itemName: listing.skills.join(', '),
-        status: 'pending'
-      });
-
-      // 2. Notify Farmer immediately
-      await sendMessage(user.phone, t('lab_booking_created_farmer', lang, worker.name || 'the worker', worker.phone));
-
-      // 3. Notify Worker and set state to await response
-      const workerLang = worker.language || 'gu';
-      const dateStr = formatDateForDisplay(targetDate);
+    // ── STATE: CUSTOM DAYS INPUT (Task 4 - Part 3) ───────────────────────────
+    if (state === 'LAB_SEARCH_DAYS_CUSTOM') {
+      const days = parseInt(text, 10);
       
-      await sendMessage(worker.phone, t('lab_booking_request_provider', workerLang, user.name || 'A farmer', user.phone, user.tempData.selectedSkill, dateStr, listing.dailyRate));
+      if (isNaN(days) || days < 1 || days > 30) {
+        return sendMessage(user.phone, t('invalid_days', lang) + '\n\n' + t('booking_days_custom_prompt', lang));
+      }
       
-      await worker.updateOne({
-        state: 'AWAITING_BOOKING_RESPONSE',
-        'tempData.pendingBookingId': booking._id
-      });
-
-      // 4. Reset Farmer
-      await user.updateOne({ state: 'MAIN_MENU', tempData: {} });
-      return showMainMenu(user, lang);
+      return await createLabourBooking(user, days, lang);
     }
 
   } catch (err) {
     console.error('[LabourSearch] Error:', err);
+    await sendMessage(user.phone, t('system_error', lang));
+    await user.updateOne({ state: 'MAIN_MENU', tempData: {} });
+    return showMainMenu(user, lang);
+  }
+}
+
+/**
+ * Create labour booking with multi-day support (Task 4 - Part 3)
+ */
+async function createLabourBooking(user, days, lang) {
+  try {
+    const selectedListingId = user.tempData.selectedListingId;
+    const targetDate = new Date(user.tempData.bookingDate);
+    targetDate.setHours(0, 0, 0, 0);
+    
+    // Calculate end date
+    const endDate = new Date(targetDate);
+    endDate.setDate(endDate.getDate() + days - 1);
+
+    // Race Condition Check
+    const isStillAvailable = await getAvailableLabourListings(user.tempData.selectedSkill, targetDate, user.location.coordinates);
+    if (!isStillAvailable.find(l => l._id.toString() === selectedListingId)) {
+      return sendMessage(user.phone, t('listing_just_booked', lang));
+    }
+
+    const listing = await LabourListing.findById(selectedListingId);
+    const worker = await User.findById(listing.workerId);
+
+    // 1. Create Pending Booking with multi-day support
+    const booking = await Booking.create({
+      type: 'labour',
+      listingId: listing._id,
+      farmerId: user._id,
+      farmerPhone: user.phone,
+      farmerName: user.name || 'Farmer',
+      providerId: worker._id,
+      providerPhone: worker.phone,
+      providerName: worker.name || 'Worker',
+      bookingDate: targetDate,
+      startDate: targetDate,
+      endDate: endDate,
+      days: days,
+      rate: listing.dailyRate,
+      itemName: listing.skills.join(', '),
+      status: 'pending'
+    });
+
+    // 2. Notify Farmer immediately
+    const dateDisplay = days > 1 
+      ? `${formatDateForDisplay(targetDate)} to ${formatDateForDisplay(endDate)} (${days} days)`
+      : formatDateForDisplay(targetDate);
+    const totalCost = listing.dailyRate * days;
+    
+    await sendMessage(user.phone, 
+      t('lab_booking_created_farmer', lang, worker.name || 'the worker', worker.phone) +
+      `\n\n📅 ${dateDisplay}\n💰 Total: ₹${totalCost}`
+    );
+
+    // 3. Notify Worker and set state to await response
+    const workerLang = worker.language || 'gu';
+    
+    await sendMessage(worker.phone, 
+      t('lab_booking_request_provider', workerLang, user.name || 'A farmer', user.phone, user.tempData.selectedSkill, dateDisplay, listing.dailyRate) +
+      (days > 1 ? `\n\n💰 Total: ₹${totalCost} (${days} days)` : '')
+    );
+    
+    await worker.updateOne({
+      state: 'AWAITING_BOOKING_RESPONSE',
+      'tempData.pendingBookingId': booking._id
+    });
+
+    // 4. Reset Farmer
+    await user.updateOne({ state: 'MAIN_MENU', tempData: {} });
+    return showMainMenu(user, lang);
+    
+  } catch (err) {
+    console.error('[labourSearch] Error creating booking:', err);
     await sendMessage(user.phone, t('system_error', lang));
     await user.updateOne({ state: 'MAIN_MENU', tempData: {} });
     return showMainMenu(user, lang);
@@ -243,4 +307,4 @@ async function sendLabourSkillPrompt(phone, lang, isError = false) {
   return sendMessage(phone, msg);
 }
 
-module.exports = { handleLabourSearch, sendLabourSkillPrompt, getAvailableLabourListings };
+module.exports = { handleLabourSearch, sendLabourSkillPrompt, getAvailableLabourListings, createLabourBooking };

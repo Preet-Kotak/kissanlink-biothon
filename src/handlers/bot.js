@@ -9,6 +9,7 @@ const { handleLabourSearch } = require('./labourSearch');
 const { handleLabourList } = require('./labourList');
 const { handleProfile } = require('./profile');
 const { handleRating } = require('./rating');
+const { handleMyBookings } = require('./myBookings');
 const { handleBookingResponse } = require('./bookingResponse');
 /**
  * Log state transitions in JSON format for debugging (Task 4 - Part 7)
@@ -76,8 +77,8 @@ async function handleMessage(user, body, location) {
       return handleProfile(user, body, location, lang);
     }
 
-    // ── TASK 1: Equipment search states (Date First) ──────────────────────────
-    if (state.startsWith('EQ_SEARCH')) {
+    // ── TASK 1: Equipment search states (Date First + Task 4: Multi-day) ──────
+    if (state.startsWith('EQ_SEARCH') || state === 'EQ_SEARCH_DAYS' || state === 'EQ_SEARCH_DAYS_CUSTOM') {
       return handleEquipmentSearch(user, body, location, lang);
     }
 
@@ -86,14 +87,21 @@ async function handleMessage(user, body, location) {
       return handleEquipmentList(user, body, location, lang);
     }
 
-    // ── TASK 1: Labour search states (Date First) ─────────────────────────────
-    if (state.startsWith('LAB_SEARCH')) {
+    // ── TASK 1: Labour search states (Date First + Task 4: Multi-day) ─────────
+    if (state.startsWith('LAB_SEARCH') || state === 'LAB_SEARCH_DAYS' || state === 'LAB_SEARCH_DAYS_CUSTOM') {
       return handleLabourSearch(user, body, location, lang);
     }
 
     // ── Labour listing states ─────────────────────────────────────────────────
     if (state.startsWith('LAB_LIST')) {
       return handleLabourList(user, body, location, lang);
+    }
+
+    // ── My Bookings states (Task 4 - Part 9) ─────────────────────────────────
+    if (state === 'MY_BOOKINGS' || state === 'MY_BOOKINGS_LIST' || 
+        state === 'BOOKING_DETAIL' || state === 'BOOKING_CANCEL_CONFIRM' || 
+        state === 'BOOKING_CANCEL_REASON') {
+      return handleMyBookings(user, body, lang);
     }
 
     // ── Main menu / default ───────────────────────────────────────────────────
