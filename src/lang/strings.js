@@ -13,6 +13,12 @@ const strings = {
     en: `🌾 *Welcome to KissanLink!*\n\nWhatsApp marketplace for Gujarat farmers.\n\nChoose your language:`,
   },
 
+  welcome_with_consent: {
+    gu: `સ્વાગત છે! 🙏\n\nKissanLink ઉપયોગ કરીને, તમે અમારી સેવાઓ, સંદેશાઓ અને તમારા ડેટાના ઉપયોગ માટે સંમતિ આપો છો.\n\nચાલો શરૂ કરીએ! 🌾`,
+    hi: `स्वागत है! 🙏\n\nKissanLink का उपयोग करके, आप हमारी सेवाओं, संदेशों और आपके डेटा के उपयोग के लिए सहमति देते हैं.\n\nचलिए शुरू करें! 🌾`,
+    en: `Welcome! 🙏\n\nBy using KissanLink, you consent to our services, messages, and use of your data.\n\nLet's get started! 🌾`,
+  },
+
   ask_name: {
     gu: `તમારું પૂરું નામ ટાઈપ કરો:`,
     hi: `अपना पूरा नाम टाइप करें:`,
@@ -34,15 +40,15 @@ const strings = {
   // ── Main Menu ────────────────────────────────────────────────────────────────
 
   main_menu: {
-    gu: `🏠 *મુખ્ય મેનૂ*\n\nઆપ શું કરવા માંગો છો?`,
-    hi: `🏠 *मुख्य मेनू*\n\nआप क्या करना चाहते हैं?`,
-    en: `🏠 *Main Menu*\n\nWhat would you like to do?`,
+    gu: `🏠 *મુખ્ય મેનૂ*\n\nઆપ શું કરવા માંગો છો?\n\n💡 _H દબાવો મદદ માટે_`,
+    hi: `🏠 *मुख्य मेनू*\n\nआप क्या करना चाहते हैं?\n\n💡 _H दबाएं मदद के लिए_`,
+    en: `🏠 *Main Menu*\n\nWhat would you like to do?\n\n💡 _Press H for help_`,
   },
 
   main_menu_options: {
-    gu: ['🚜 સાધન ભાડે લો', '👷 મજૂર શોધો', '📋 સાધન ભાડે આપો', '💼 કામ ઓફર કરો', '⚙️ મારી પ્રોફાઇલ', '📅 મારા Bookings'],
-    hi: ['🚜 उपकरण किराए पर लें', '👷 मजदूर खोजें', '📋 उपकरण किराए पर दें', '💼 काम ऑफर करें', '⚙️ मेरी प्रोफाइल', '📅 मेरे Bookings'],
-    en: ['🚜 Rent Equipment', '👷 Find Labour', '📋 List My Equipment', '💼 Offer Work', '⚙️ My Profile', '📅 My Bookings'],
+    gu: ['1️⃣ 🚜 સાધન ભાડે લો', '2️⃣ 👷 મજૂર શોધો', '3️⃣ 📋 સાધન ભાડે આપો', '4️⃣ 💼 કામ ઓફર કરો', '5️⃣ ⚙️ મારી પ્રોફાઇલ', '6️⃣ 📅 મારા Bookings'],
+    hi: ['1️⃣ 🚜 उपकरण किराए पर लें', '2️⃣ 👷 मजदूर खोजें', '3️⃣ 📋 उपकरण किराए पर दें', '4️⃣ 💼 काम ऑफर करें', '5️⃣ ⚙️ मेरी प्रोफाइल', '6️⃣ 📅 मेरे Bookings'],
+    en: ['1️⃣ 🚜 Rent Equipment', '2️⃣ 👷 Find Labour', '3️⃣ 📋 List My Equipment', '4️⃣ 💼 Offer Work', '5️⃣ ⚙️ My Profile', '6️⃣ 📅 My Bookings'],
   },
 
   my_bookings_placeholder: {
@@ -66,9 +72,9 @@ const strings = {
   },
 
   my_bookings_footer: {
-    gu: `સંખ્યા પસંદ કરો અથવા 0 માટે મુખ્ય મેનૂ`,
-    hi: `संख्या चुनें या 0 मुख्य मेनू`,
-    en: `Select number or 0 for main menu`,
+    gu: `\n💡 _H દબાવો મદદ માટે_\nસંખ્યા પસંદ કરો | 0️⃣ મુખ્ય મેનૂ`,
+    hi: `\n💡 _H दबाएं मदद के लिए_\nसंख्या चुनें | 0️⃣ मुख्य मेनू`,
+    en: `\n💡 _Press H for help_\nSelect number | 0️⃣ Main menu`,
   },
 
   booking_detail_message: {
@@ -81,9 +87,10 @@ const strings = {
       `👤 ${otherName}\n` +
       `📞 ${otherPhone}\n` +
       `🆔 બુકિંગ ID: ${bookingId}\n\n` +
-      `1. બુકિંગ રદ કરો\n` +
-      `2. ${otherName} ને સંપર્ક કરો\n` +
-      `0. પાછળ`,
+      `1️⃣ બુકિંગ રદ કરો\n` +
+      `2️⃣ ${otherName} ને સંપર્ક કરો\n` +
+      `0️⃣ પાછળ\n\n` +
+      `💡 _H દબાવો મદદ માટે_`,
     hi: (item, date, dailyRate, totalRate, status, otherName, otherPhone, bookingId) =>
       `📋 *बुकिंग विवरण*\n\n` +
       `🚜 वस्तु: ${item}\n` +
@@ -93,9 +100,10 @@ const strings = {
       `👤 ${otherName}\n` +
       `📞 ${otherPhone}\n` +
       `🆔 बुकिंग ID: ${bookingId}\n\n` +
-      `1. बुकिंग रद्द करें\n` +
-      `2. ${otherName} से संपर्क करें\n` +
-      `0. वापस`,
+      `1️⃣ बुकिंग रद्द करें\n` +
+      `2️⃣ ${otherName} से संपर्क करें\n` +
+      `0️⃣ वापस\n\n` +
+      `💡 _H दबाएं मदद के लिए_`,
     en: (item, date, dailyRate, totalRate, status, otherName, otherPhone, bookingId) =>
       `📋 *Booking Details*\n\n` +
       `🚜 Item: ${item}\n` +
@@ -105,9 +113,10 @@ const strings = {
       `👤 ${otherName}\n` +
       `📞 ${otherPhone}\n` +
       `🆔 Booking ID: ${bookingId}\n\n` +
-      `1. Cancel Booking\n` +
-      `2. Contact ${otherName}\n` +
-      `0. Back`,
+      `1️⃣ Cancel Booking\n` +
+      `2️⃣ Contact ${otherName}\n` +
+      `0️⃣ Back\n\n` +
+      `💡 _Press H for help_`,
   },
 
   booking_not_found: {
@@ -117,21 +126,21 @@ const strings = {
   },
 
   cancel_booking_confirm: {
-    gu: (name, date) => `${name} સાથેની ${date}ની બુકિંગ રદ કરવી છે?\n\n1 લખો રદ કરવા અથવા 0 મુખ્ય મેનૂ માટે.`,
-    hi: (name, date) => `${name} के साथ ${date} की बुकिंग रद्द करनी है?\n\n1 लिखें रद्द करने के लिए या 0 मुख्य मेनू.`,
-    en: (name, date) => `Cancel booking with ${name} on ${date}?\n\nType 1 to confirm or 0 for main menu.`,
+    gu: (name, date) => `${name} સાથેની ${date}ની બુકિંગ રદ કરવી છે?\n\n1️⃣ લખો રદ કરવા\n0️⃣ મુખ્ય મેનૂ માટે\n\n💡 _H દબાવો મદદ માટે_`,
+    hi: (name, date) => `${name} के साथ ${date} की बुकिंग रद्द करनी है?\n\n1️⃣ लिखें रद्द करने के लिए\n0️⃣ मुख्य मेनू\n\n💡 _H दबाएं मदद के लिए_`,
+    en: (name, date) => `Cancel booking with ${name} on ${date}?\n\n1️⃣ Type 1 to confirm\n0️⃣ For main menu\n\n💡 _Press H for help_`,
   },
 
   type_1_or_0: {
-    gu: `કૃપા કરીને 1 લખો રદ કરવા અથવા 0 મુખ્ય મેનૂ માટે.`,
-    hi: `कृपया 1 लिखें रद्द करने के लिए या 0 मुख्य मेनू.`,
-    en: `Please type 1 to confirm cancellation or 0 for main menu.`,
+    gu: `કૃપા કરીને 1️⃣ લખો રદ કરવા અથવા 0️⃣ મુખ્ય મેનૂ માટે.\n\n💡 _H દબાવો મદદ માટે_`,
+    hi: `कृपया 1️⃣ लिखें रद्द करने के लिए या 0️⃣ मुख्य मेनू.\n\n💡 _H दबाएं मदद के लिए_`,
+    en: `Please type 1️⃣ to confirm cancellation or 0️⃣ for main menu.\n\n💡 _Press H for help_`,
   },
 
   cancellation_reason_prompt: {
-    gu: `રદ કરવાનું કારણ?\n\n1 લખો છોડી દેવા માટે અથવા કારણ લખો.`,
-    hi: `रद्द करने का कारण?\n\n1 लिखें छोड़ने के लिए या कारण लिखें.`,
-    en: `Reason for cancellation?\n\nType 1 to skip or enter reason.`,
+    gu: `રદ કરવાનું કારણ?\n\n1️⃣ લખો છોડી દેવા માટે અથવા કારણ લખો\n\n💡 _H દબાવો મદદ માટે_`,
+    hi: `रद्द करने का कारण?\n\n1️⃣ लिखें छोड़ने के लिए या कारण लिखें\n\n💡 _H दबाएं मदद के लिए_`,
+    en: `Reason for cancellation?\n\n1️⃣ Type 1 to skip or enter reason\n\n💡 _Press H for help_`,
   },
 
   booking_cancelled_success: {
@@ -158,15 +167,15 @@ const strings = {
   // ── Multi-Day Bookings (Task 4 - Part 3) ────────────────────────────────────
 
   booking_days_prompt: {
-    gu: `કેટલા દિવસ માટે જોઈએ છે?\n\n1. એક દિવસ\n2. ઘણા દિવસ (સંખ્યા દાખલ કરો)\n0. મુખ્ય મેનૂ`,
-    hi: `कितने दिन के लिए चाहिए?\n\n1. एक दिन\n2. कई दिन (संख्या दर्ज करें)\n0. मुख्य मेनू`,
-    en: `How many days?\n\n1. Single day\n2. Multiple days (enter number)\n0. Main menu`,
+    gu: `કેટલા દિવસ માટે જોઈએ છે?\n\n1️⃣ એક દિવસ\n2️⃣ ઘણા દિવસ\n\n💡 _H દબાવો મદદ માટે_ | 0️⃣ મુખ્ય મેનૂ`,
+    hi: `कितने दिन के लिए चाहिए?\n\n1️⃣ एक दिन\n2️⃣ कई दिन\n\n💡 _H दबाएं मदद के लिए_ | 0️⃣ मुख्य मेनू`,
+    en: `How many days?\n\n1️⃣ Single day\n2️⃣ Multiple days\n\n💡 _Press H for help_ | 0️⃣ Main menu`,
   },
 
   booking_days_custom_prompt: {
-    gu: `કેટલા દિવસ માટે જોઈએ છે? (1-30 દાખલ કરો):`,
-    hi: `कितने दिन के लिए चाहिए? (1-30 दर्ज करें):`,
-    en: `How many days do you need? (Enter 1-30):`,
+    gu: `કેટલા દિવસ માટે જોઈએ છે? (1-30 દાખલ કરો)\n\n💡 _H દબાવો મદદ માટે_`,
+    hi: `कितने दिन के लिए चाहिए? (1-30 दर्ज करें)\n\n💡 _H दबाएं मदद के लिए_`,
+    en: `How many days do you need? (Enter 1-30)\n\n💡 _Press H for help_`,
   },
 
   invalid_days: {
@@ -178,27 +187,27 @@ const strings = {
   // ── TASK 1: Enhanced Date Selection UI ─────────────────────────────────────
 
   eq_search_date_prompt: {
-    gu: (tomorrow, inWeek) => `તમારે ક્યારે સાધન જોઈએ છે?\n\n1. આવતીકાલે (${tomorrow})\n2. એક અઠવાડિયામાં (${inWeek})\n3. તારીખ દાખલ કરો\n0. મુખ્ય મેનૂ`,
-    hi: (tomorrow, inWeek) => `आपको उपकरण कब चाहिए?\n\n1. कल (${tomorrow})\n2. एक हफ्ते में (${inWeek})\n3. तारीख दर्ज करें\n0. मुख्य मेनू`,
-    en: (tomorrow, inWeek) => `When do you need equipment?\n\n1. Tomorrow (${tomorrow})\n2. In a week (${inWeek})\n3. Enter custom date\n0. Main menu`
+    gu: (tomorrow, inWeek) => `તમારે ક્યારે સાધન જોઈએ છે?\n\n1️⃣ આવતીકાલે (${tomorrow})\n2️⃣ એક અઠવાડિયામાં (${inWeek})\n3️⃣ તારીખ દાખલ કરો\n0️⃣ મુખ્ય મેનૂ`,
+    hi: (tomorrow, inWeek) => `आपको उपकरण कब चाहिए?\n\n1️⃣ कल (${tomorrow})\n2️⃣ एक हफ्ते में (${inWeek})\n3️⃣ तारीख दर्ज करें\n0️⃣ मुख्य मेनू`,
+    en: (tomorrow, inWeek) => `When do you need equipment?\n\n1️⃣ Tomorrow (${tomorrow})\n2️⃣ In a week (${inWeek})\n3️⃣ Enter custom date\n0️⃣ Main menu`
   },
 
   lab_search_date_prompt: {
-    gu: (tomorrow, inWeek) => `તમારે ક્યારે મજૂર જોઈએ છે?\n\n1. આવતીકાલે (${tomorrow})\n2. એક અઠવાડિયામાં (${inWeek})\n3. તારીખ દાખલ કરો\n0. મુખ્ય મેનૂ`,
-    hi: (tomorrow, inWeek) => `आपको मजदूर कब चाहिए?\n\n1. कल (${tomorrow})\n2. एक हफ्ते में (${inWeek})\n3. तारीख दर्ज करें\n0. मुख्य मेनू`,
-    en: (tomorrow, inWeek) => `When do you need workers?\n\n1. Tomorrow (${tomorrow})\n2. In a week (${inWeek})\n3. Enter custom date\n0. Main menu`
+    gu: (tomorrow, inWeek) => `તમારે ક્યારે મજૂર જોઈએ છે?\n\n1️⃣ આવતીકાલે (${tomorrow})\n2️⃣ એક અઠવાડિયામાં (${inWeek})\n3️⃣ તારીખ દાખલ કરો\n0️⃣ મુખ્ય મેનૂ`,
+    hi: (tomorrow, inWeek) => `आपको मजदूर कब चाहिए?\n\n1️⃣ कल (${tomorrow})\n2️⃣ एक हफ्ते में (${inWeek})\n3️⃣ तारीख दर्ज करें\n0️⃣ मुख्य मेनू`,
+    en: (tomorrow, inWeek) => `When do you need workers?\n\n1️⃣ Tomorrow (${tomorrow})\n2️⃣ In a week (${inWeek})\n3️⃣ Enter custom date\n0️⃣ Main menu`
   },
 
   eq_search_date_custom_prompt: {
-    gu: `કઈ તારીખ જોઈએ? (DD-MM-YYYY ફોર્મેટ માં ટાઈપ કરો, જેમ કે 15-07-2026)`,
-    hi: `कौन सी तारीख चाहिए? (DD-MM-YYYY फॉर्मेट में टाइप करें, जैसे 15-07-2026)`,
-    en: `Enter custom date in DD-MM-YYYY format (e.g. 15-07-2026):`
+    gu: `કઈ તારીખ જોઈએ? (DD-MM-YYYY ફોર્મેટ માં ટાઈપ કરો, જેમ કે 15-07-2026)\n\n💡 _H દબાવો મદદ માટે_`,
+    hi: `कौन सी तारीख चाहिए? (DD-MM-YYYY फॉर्मेट में टाइप करें, जैसे 15-07-2026)\n\n💡 _H दबाएं मदद के लिए_`,
+    en: `Enter custom date in DD-MM-YYYY format (e.g. 15-07-2026)\n\n💡 _Press H for help_`
   },
 
   lab_search_date_custom_prompt: {
-    gu: `કઈ તારીખ જોઈએ? (DD-MM-YYYY ફોર્મેટ માં ટાઈપ કરો, જેમ કે 15-07-2026)`,
-    hi: `कौन सी तारीख चाहिए? (DD-MM-YYYY फॉर्मेट में टाइप करें, जैसे 15-07-2026)`,
-    en: `Enter custom date in DD-MM-YYYY format (e.g. 15-07-2026):`
+    gu: `કઈ તારીખ જોઈએ? (DD-MM-YYYY ફોર્મેટ માં ટાઈપ કરો, જેમ કે 15-07-2026)\n\n💡 _H દબાવો મદદ માટે_`,
+    hi: `कौन सी तारीख चाहिए? (DD-MM-YYYY फॉर्मेट में टाइप करें, जैसे 15-07-2026)\n\n💡 _H दबाएं मदद के लिए_`,
+    en: `Enter custom date in DD-MM-YYYY format (e.g. 15-07-2026)\n\n💡 _Press H for help_`
   },
 
   date_invalid_format: {
@@ -228,9 +237,9 @@ const strings = {
   },
 
   equipment_types: {
-    gu: ['🚜 ટ્રેક્ટર', '⚙️ રોટાવેટર', '🌾 થ્રેશર', '💧 વોટર પમ્પ', '🌿 સ્પ્રેયર', '🏠 મુખ્ય મેનૂ પર પાછા'],
-    hi: ['🚜 ट्रैक्टर', '⚙️ रोटावेटर', '🌾 थ्रेशर', '💧 वाटर पंप', '🌿 स्प्रेयर', '🏠 मुख्य मेनू पर वापस'],
-    en: ['🚜 Tractor', '⚙️ Rotavator', '🌾 Thresher', '💧 Water Pump', '🌿 Sprayer', '🏠 Back to Main Menu'],
+    gu: ['1️⃣ 🚜 ટ્રેક્ટર', '2️⃣ ⚙️ રોટાવેટર', '3️⃣ 🌾 થ્રેશર', '4️⃣ 💧 વોટર પમ્પ', '5️⃣ 🌿 સ્પ્રેયર'],
+    hi: ['1️⃣ 🚜 ट्रैक्टर', '2️⃣ ⚙️ रोटावेटर', '3️⃣ 🌾 थ्रेशर', '4️⃣ 💧 वाटर पंप', '5️⃣ 🌿 स्प्रेयर'],
+    en: ['1️⃣ 🚜 Tractor', '2️⃣ ⚙️ Rotavator', '3️⃣ 🌾 Thresher', '4️⃣ 💧 Water Pump', '5️⃣ 🌿 Sprayer'],
   },
 
   equipment_types_raw: ['Tractor', 'Rotavator', 'Thresher', 'Water Pump', 'Sprayer'],
@@ -248,18 +257,18 @@ const strings = {
   },
 
   eq_search_results_footer: {
-    gu: `\nકોઈ નંબર પસંદ કરો અથવા મુખ્ય મેનૂ માટે 0 દબાવો`,
-    hi: `\nकोई नंबर चुनें या मुख्य मेनू के लिए 0 दबाएं`,
-    en: `\nSelect a number or 0 for main menu`
+    gu: `\n💡 _H દબાવો મદદ માટે_\nકોઈ નંબર પસંદ કરો | 0️⃣ મુખ્ય મેનૂ`,
+    hi: `\n💡 _H दबाएं मदद के लिए_\nकोई नंबर चुनें | 0️⃣ मुख्य मेनू`,
+    en: `\n💡 _Press H for help_\nSelect a number | 0️⃣ Main menu`
   },
 
   equipment_card: {
     gu: (i, name, village, rate, rating, dist) =>
-      `*${i}.* 👤 ${name} — ${village}\n💰 ₹${rate}/દિવસ  ⭐ ${rating}\n📍 ${dist} દૂર`,
+      `*${i}️⃣* 👤 ${name} — ${village}\n💰 ₹${rate}/દિવસ  ⭐ ${rating}\n📍 ${dist} દૂર`,
     hi: (i, name, village, rate, rating, dist) =>
-      `*${i}.* 👤 ${name} — ${village}\n💰 ₹${rate}/दिन  ⭐ ${rating}\n📍 ${dist} दूर`,
+      `*${i}️⃣* 👤 ${name} — ${village}\n💰 ₹${rate}/दिन  ⭐ ${rating}\n📍 ${dist} दूर`,
     en: (i, name, village, rate, rating, dist) =>
-      `*${i}.* 👤 ${name} — ${village}\n💰 ₹${rate}/day  ⭐ ${rating}\n📍 ${dist} away`,
+      `*${i}️⃣* 👤 ${name} — ${village}\n💰 ₹${rate}/day  ⭐ ${rating}\n📍 ${dist} away`,
   },
 
   ask_select_listing: {
@@ -297,9 +306,9 @@ const strings = {
   },
 
   labour_skills: {
-    gu: ['🌾 વાવણી', '🌽 લણણી', '💧 સિંચાઈ', '🌿 નીંદણ', '🔧 સામાન્ય', '🏠 મુખ્ય મેનૂ પર પાછા'],
-    hi: ['🌾 बुवाई', '🌽 कटाई', '💧 सिंचाई', '🌿 निराई', '🔧 सामान्य', '🏠 मुख्य मेनू पर वापस'],
-    en: ['🌾 Sowing', '🌽 Harvesting', '💧 Irrigation', '🌿 Weeding', '🔧 General', '🏠 Back to Main Menu'],
+    gu: ['1️⃣ 🌾 વાવણી', '2️⃣ 🌽 લણણી', '3️⃣ 💧 સિંચાઈ', '4️⃣ 🌿 નીંદણ', '5️⃣ 🔧 સામાન્ય'],
+    hi: ['1️⃣ 🌾 बुवाई', '2️⃣ 🌽 कटाई', '3️⃣ 💧 सिंचाई', '4️⃣ 🌿 निराई', '5️⃣ 🔧 सामान्य'],
+    en: ['1️⃣ 🌾 Sowing', '2️⃣ 🌽 Harvesting', '3️⃣ 💧 Irrigation', '4️⃣ 🌿 Weeding', '5️⃣ 🔧 General'],
   },
 
   labour_skills_raw: ['sowing', 'harvesting', 'irrigation', 'weeding', 'general'],
@@ -317,18 +326,18 @@ const strings = {
   },
 
   lab_search_results_footer: {
-    gu: `\nકોઈ નંબર પસંદ કરો અથવા મુખ્ય મેનૂ માટે 0 દબાવો`,
-    hi: `\nकोई नंबर चुनें या मुख्य मेनू के लिए 0 दबाएं`,
-    en: `\nSelect a number or 0 for main menu`
+    gu: `\n💡 _H દબાવો મદદ માટે_\nકોઈ નંબર પસંદ કરો | 0️⃣ મુખ્ય મેનૂ`,
+    hi: `\n💡 _H दबाएं मदद के लिए_\nकोई नंबर चुनें | 0️⃣ मुख्य मेनू`,
+    en: `\n💡 _Press H for help_\nSelect a number | 0️⃣ Main menu`
   },
 
   labour_card: {
     gu: (i, name, village, rate, rating, dist) =>
-      `*${i}.* 👤 ${name} — ${village}\n💰 ₹${rate}/દિવસ  ⭐ ${rating}\n📍 ${dist} દૂર`,
+      `*${i}️⃣* 👤 ${name} — ${village}\n💰 ₹${rate}/દિવસ  ⭐ ${rating}\n📍 ${dist} દૂર`,
     hi: (i, name, village, rate, rating, dist) =>
-      `*${i}.* 👤 ${name} — ${village}\n💰 ₹${rate}/दिन  ⭐ ${rating}\n📍 ${dist} दूर`,
+      `*${i}️⃣* 👤 ${name} — ${village}\n💰 ₹${rate}/दिन  ⭐ ${rating}\n📍 ${dist} दूर`,
     en: (i, name, village, rate, rating, dist) =>
-      `*${i}.* 👤 ${name} — ${village}\n💰 ₹${rate}/day  ⭐ ${rating}\n📍 ${dist} away`,
+      `*${i}️⃣* 👤 ${name} — ${village}\n💰 ₹${rate}/day  ⭐ ${rating}\n📍 ${dist} away`,
   },
 
   // ── Labour Listing (worker side) ─────────────────────────────────────────────
@@ -354,9 +363,9 @@ const strings = {
   // ── TASK 1: Booking Handshake Notifications ─────────────────────────────────
 
   listing_just_booked: {
-    gu: `⚠️ માફ કરજો, કોઈએ હમણાં જ આ બુક કરી લીધું છે. કૃપા કરીને બીજું પસંદ કરો.`,
-    hi: `⚠️ माफ़ करें, किसी ने अभी इसे बुक कर लिया है। कृपया दूसरा चुनें।`,
-    en: `⚠️ Sorry, someone just booked this. Please choose another.`
+    gu: `⚠️ માફ કરજો, કોઈએ હમણાં જ આ બુક કરી લીધું છે. કૃપા કરીને બીજું પસંદ કરો.\n\n💡 _H દબાવો મદદ માટે_`,
+    hi: `⚠️ माफ़ करें, किसी ने अभी इसे बुक कर लिया है। कृपया दूसरा चुनें।\n\n💡 _H दबाएं मदद के लिए_`,
+    en: `⚠️ Sorry, someone just booked this. Please choose another.\n\n💡 _Press H for help_`
   },
 
   eq_booking_created_farmer: {
@@ -366,9 +375,9 @@ const strings = {
   },
 
   eq_booking_request_provider: {
-    gu: (farmerName, farmerPhone, item, date, rate) => `🔔 ${farmerName} (${farmerPhone}) ને ${date} ના રોજ ₹${rate} માં તમારું ${item} જોઈએ છે.\n\nજવાબ આપો:\n1 મંજૂર કરવા\n2 ના પાડવા`,
-    hi: (farmerName, farmerPhone, item, date, rate) => `🔔 ${farmerName} (${farmerPhone}) को ${date} को ₹${rate} में आपका ${item} चाहिए।\n\nजवाब दें:\n1 मंजूर करने के लिए\n2 मना करने के लिए`,
-    en: (farmerName, farmerPhone, item, date, rate) => `🔔 ${farmerName} (${farmerPhone}) wants your ${item} on ${date} for ₹${rate}.\n\nReply:\n1 to Accept\n2 to Decline`
+    gu: (farmerName, farmerPhone, item, date, rate) => `🔔 ${farmerName} (${farmerPhone}) ને ${date} ના રોજ ₹${rate} માં તમારું ${item} જોઈએ છે.\n\nજવાબ આપો:\n1️⃣ મંજૂર કરવા\n2️⃣ ના પાડવા\n\n💡 _H દબાવો મદદ માટે_`,
+    hi: (farmerName, farmerPhone, item, date, rate) => `🔔 ${farmerName} (${farmerPhone}) को ${date} को ₹${rate} में आपका ${item} चाहिए।\n\nजवाब दें:\n1️⃣ मंजूर करने के लिए\n2️⃣ मना करने के लिए\n\n💡 _H दबाएं मदद के लिए_`,
+    en: (farmerName, farmerPhone, item, date, rate) => `🔔 ${farmerName} (${farmerPhone}) wants your ${item} on ${date} for ₹${rate}.\n\nReply:\n1️⃣ to Accept\n2️⃣ to Decline\n\n💡 _Press H for help_`
   },
 
   lab_booking_created_farmer: {
@@ -456,9 +465,9 @@ const strings = {
   },
 
   profile_options: {
-    gu: ['✏️ નામ બદલો', '📍 લોકેશન અપડેટ કરો', '🌐 ભાષા બદલો', '🏘️ ગામ બદલો', '📋 મારા Listings', '🔙 મુખ્ય મેનૂ'],
-    hi: ['✏️ नाम बदलें', '📍 लोकेशन अपडेट करें', '🌐 भाषा बदलें', '🏘️ गांव बदलें', '📋 मेरे Listings', '🔙 मुख्य मेनू'],
-    en: ['✏️ Change Name', '📍 Update Location', '🌐 Change Language', '🏘️ Change Village', '📋 My Listings', '🔙 Main Menu'],
+    gu: ['1️⃣ ✏️ નામ બદલો', '2️⃣ 📍 લોકેશન અપડેટ કરો', '3️⃣ 🌐 ભાષા બદલો', '4️⃣ 🏘️ ગામ બદલો', '5️⃣ 📋 મારા Listings', '6️⃣ 🔙 મુખ્ય મેનૂ'],
+    hi: ['1️⃣ ✏️ नाम बदलें', '2️⃣ 📍 लोकेशन अपडेट करें', '3️⃣ 🌐 भाषा बदलें', '4️⃣ 🏘️ गांव बदलें', '5️⃣ 📋 मेरे Listings', '6️⃣ 🔙 मुख्य मेनू'],
+    en: ['1️⃣ ✏️ Change Name', '2️⃣ 📍 Update Location', '3️⃣ 🌐 Change Language', '4️⃣ 🏘️ Change Village', '5️⃣ 📋 My Listings', '6️⃣ 🔙 Main Menu'],
   },
 
   village_prompt: {
@@ -482,9 +491,9 @@ const strings = {
   },
 
   invalid_input: {
-    gu: `⚠️ માફ કરજો, હું સમજ્યો નહીં. નીચેના વિકલ્પોમાંથી પસંદ કરો.`,
-    hi: `⚠️ माफ करें, मैं समझ नहीं पाया. नीचे के विकल्पों में से चुनें.`,
-    en: `⚠️ Sorry, I didn't understand. Please choose from the options below.`,
+    gu: `⚠️ માફ કરજો, હું સમજ્યો નહીં.\n\n💡 _H દબાવો મદદ માટે_`,
+    hi: `⚠️ माफ करें, मैं समझ नहीं पाया.\n\n💡 _H दबाएं मदद के लिए_`,
+    en: `⚠️ Sorry, I didn't understand.\n\n💡 _Press H for help_`,
   },
 
   invalid_number: {
@@ -494,9 +503,15 @@ const strings = {
   },
 
   back_hint: {
-    gu: `_(0 ટાઈપ કરો = મુખ્ય મેનૂ)_`,
-    hi: `_(0 टाइप करें = मुख्य मेनू)_`,
-    en: `_(type 0 = main menu)_`,
+    gu: `\n\n0️⃣ મુખ્ય મેનૂ | 💡 _H દબાવો મદદ માટે_`,
+    hi: `\n\n0️⃣ मुख्य मेनू | 💡 _H दबाएं मदद के लिए_`,
+    en: `\n\n0️⃣ Main menu | 💡 _Press H for help_`,
+  },
+
+  help_message: {
+    gu: `💡 *મદદ*\n\nકોઈપણ સમસ્યા માટે કૉલ કરો:\n📞 *8320675071*\n\nનેવિગેશન:\n• 0️⃣ દબાવો મુખ્ય મેનૂ માટે\n• H દબાવો મદદ માટે`,
+    hi: `💡 *मदद*\n\nकिसी भी समस्या के लिए कॉल करें:\n📞 *8320675071*\n\nनेविगेशन:\n• 0️⃣ दबाएं मुख्य मेनू के लिए\n• H दबाएं मदद के लिए`,
+    en: `💡 *Help*\n\nFor any issues call:\n📞 *8320675071*\n\nNavigation:\n• Press 0️⃣ for main menu\n• Press H for help`,
   },
 
   back_to_menu: {
@@ -505,7 +520,7 @@ const strings = {
     en: `🔙 Main Menu`,
   },
 
-  language_options: ['🇮🇳 ગુજરાતી', '🇮🇳 हिंदी', '🇬🇧 English'],
+  language_options: ['1️⃣ 🇮🇳 ગુજરાતી', '2️⃣ 🇮🇳 हिंदी', '3️⃣ 🇬🇧 English'],
 
   name_updated: {
     gu: (name) => `✅ નામ *${name}* અપડેટ થઈ ગયું.`,
@@ -563,15 +578,15 @@ const strings = {
   },
 
   listing_detail_menu: {
-    gu: "1. Rate બદલો\n2. Availability toggle\n3. Dates manage કરો\n4. Delete\n0. પાછળ",
-    hi: "1. Rate बदलें\n2. Availability toggle\n3. Dates manage करें\n4. Delete\n0. वापस",
-    en: "1. Change Rate\n2. Toggle Availability\n3. Manage Dates\n4. Delete\n0. Back"
+    gu: "1️⃣ Rate બદલો\n2️⃣ Availability toggle\n3️⃣ Dates manage કરો\n4️⃣ Delete\n0️⃣ પાછળ\n\n💡 _H દબાવો મદદ માટે_",
+    hi: "1️⃣ Rate बदलें\n2️⃣ Availability toggle\n3️⃣ Dates manage करें\n4️⃣ Delete\n0️⃣ वापस\n\n💡 _H दबाएं मदद के लिए_",
+    en: "1️⃣ Change Rate\n2️⃣ Toggle Availability\n3️⃣ Manage Dates\n4️⃣ Delete\n0️⃣ Back\n\n💡 _Press H for help_"
   },
 
   availability_menu: {
-    gu: "📅 Availability:\n\n1. Dates block કરો\n2. Dates unblock કરો\n3. Blocked dates જુઓ\n0. પાછળ",
-    hi: "📅 Availability:\n\n1. Dates block करें\n2. Dates unblock करें\n3. Blocked dates देखें\n0. वापस",
-    en: "📅 Availability:\n\n1. Block dates\n2. Unblock dates\n3. View blocked dates\n0. Back"
+    gu: "📅 Availability:\n\n1️⃣ Dates block કરો\n2️⃣ Dates unblock કરો\n3️⃣ Blocked dates જુઓ\n0️⃣ પાછળ\n\n💡 _H દબાવો મદદ માટે_",
+    hi: "📅 Availability:\n\n1️⃣ Dates block करें\n2️⃣ Dates unblock करें\n3️⃣ Blocked dates देखें\n0️⃣ वापस\n\n💡 _H दबाएं मदद के लिए_",
+    en: "📅 Availability:\n\n1️⃣ Block dates\n2️⃣ Unblock dates\n3️⃣ View blocked dates\n0️⃣ Back\n\n💡 _Press H for help_"
   },
 
   block_dates_prompt: {

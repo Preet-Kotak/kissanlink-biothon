@@ -97,7 +97,7 @@ async function handleLabourSearch(user, body, location, lang) {
       }
 
       const prompt = t('lab_search_date_prompt', lang, formatDateForDisplay(tomorrow), formatDateForDisplay(inOneWeek));
-      return sendMessage(user.phone, t('invalid_input', lang) + '\n\n' + prompt);
+      return; // Do nothing on invalid input
     }
 
     // ── STATE: CUSTOM DATE INPUT ─────────────────────────────────────────────
@@ -126,7 +126,7 @@ async function handleLabourSearch(user, body, location, lang) {
       }
 
       const selectedSkill = skillsRaw[skillIndex];
-      const targetDate = new Date(user.tempData.bookingDate);
+      const targetDate = new Date(user.tempData?.bookingDate || Date.now());
       
       const listings = await getAvailableLabourListings(selectedSkill, targetDate, user.location.coordinates);
 
@@ -151,7 +151,7 @@ async function handleLabourSearch(user, body, location, lang) {
       const savedResults = user.tempData.searchResults || [];
 
       if (isNaN(choiceIndex) || choiceIndex < 0 || choiceIndex >= savedResults.length) {
-        return sendMessage(user.phone, t('invalid_number', lang));
+        return; // Do nothing on invalid input
       }
 
       const selectedListingId = savedResults[choiceIndex];
@@ -203,8 +203,17 @@ async function handleLabourSearch(user, body, location, lang) {
  */
 async function createLabourBooking(user, days, lang) {
   try {
-    const selectedListingId = user.tempData.selectedListingId;
-    const targetDate = new Date(user.tempData.bookingDate);
+    const selectedListingId = user.tempData?.selectedListingId;
+    const bookingDate = user.tempData?.bookingDate;
+    
+    if (!selectedListingId || !bookingDate) {
+      // Session data lost, return to main menu
+      await user.updateOne({ state: 'MAIN_MENU', tempData: {} });
+      await sendMessage(user.phone, t('system_error', lang));
+      return showMainMenu(user, lang);
+    }
+    
+    const targetDate = new Date(bookingDate);
     targetDate.setHours(0, 0, 0, 0);
     
     // Calculate end date
@@ -212,7 +221,14 @@ async function createLabourBooking(user, days, lang) {
     endDate.setDate(endDate.getDate() + days - 1);
 
     // Race Condition Check
-    const isStillAvailable = await getAvailableLabourListings(user.tempData.selectedSkill, targetDate, user.location.coordinates);
+    const selectedSkill = user.tempData?.selectedSkill;
+    if (!selectedSkill) {
+      await user.updateOne({ state: 'MAIN_MENU', tempData: {} });
+      await sendMessage(user.phone, t('system_error', lang));
+      return showMainMenu(user, lang);
+    }
+    
+    const isStillAvailable = await getAvailableLabourListings(selectedSkill, targetDate, user.location.coordinates);
     if (!isStillAvailable.find(l => l._id.toString() === selectedListingId)) {
       return sendMessage(user.phone, t('listing_just_booked', lang));
     }
@@ -254,7 +270,7 @@ async function createLabourBooking(user, days, lang) {
     const workerLang = worker.language || 'gu';
     
     await sendMessage(worker.phone, 
-      t('lab_booking_request_provider', workerLang, user.name || 'A farmer', user.phone, user.tempData.selectedSkill, dateDisplay, listing.dailyRate) +
+      t('lab_booking_request_provider', workerLang, user.name || 'A farmer', user.phone, selectedSkill, dateDisplay, listing.dailyRate) +
       (days > 1 ? `\n\n💰 Total: ₹${totalCost} (${days} days)` : '')
     );
     
@@ -283,8 +299,8 @@ async function sendLabourSkillPrompt(phone, lang, isError = false) {
   let msg = isError ? t('invalid_input', lang) + '\n\n' : '';
   msg += t('ask_labour_skill', lang) + '\n';
   
-  skills.forEach((skill, index) => {
-    msg += `\n${index + 1}. ${skill}`;
+  skills.forEach((skill) => {
+    msg += `\n${skill}`;
   });
   
   msg += '\n\n' + t('back_hint', lang);

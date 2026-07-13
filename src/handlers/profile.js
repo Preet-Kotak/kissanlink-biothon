@@ -24,7 +24,7 @@ async function handleProfile(user, body, location, lang) {
           break;
         case 3: // Change language
           await user.updateOne({ state: 'PROFILE_LANGUAGE' });
-          await sendMenu(user.phone, t('welcome_new', 'en'), strings.language_options, lang);
+          await sendMenu(user.phone, t('welcome_new', 'en'), strings.language_options);
           break;
         case 4: // Edit village
           await user.updateOne({ state: 'PROFILE_VILLAGE' });
@@ -83,7 +83,7 @@ async function handleProfile(user, body, location, lang) {
       const langMap = { 1: 'gu', 2: 'hi', 3: 'en' };
       const chosen = langMap[choice];
       if (!chosen) {
-        await sendMenu(user.phone, t('welcome_new', 'en'), strings.language_options, lang);
+        await sendMenu(user.phone, t('welcome_new', 'en'), strings.language_options);
         break;
       }
       await user.updateOne({ language: chosen, state: 'PROFILE_MENU' });
@@ -113,7 +113,13 @@ async function handleProfile(user, body, location, lang) {
 }
 
 async function showProfileMenu(user, lang) {
-  const roles = user.roles.map((r) => t(`role_${r}`, lang)).join(', ');
+  // Use hardcoded role labels instead of t() to avoid missing key errors
+  const roleLabels = {
+    gu: { farmer: 'ખેડૂત', owner: 'માલિક', worker: 'મજૂર' },
+    hi: { farmer: 'किसान', owner: 'मालिक', worker: 'मजदूर' },
+    en: { farmer: 'Farmer', owner: 'Owner', worker: 'Worker' },
+  };
+  const roles = user.roles.map((r) => roleLabels[lang][r] || r).join(', ');
 
   const langNames = { gu: 'Gujarati', hi: 'Hindi', en: 'English' };
   const languageDisplay = langNames[user.language || 'gu'];
@@ -122,9 +128,8 @@ async function showProfileMenu(user, lang) {
   await sendMenu(
     user.phone,
     t('profile_view', lang, user.name, user.village || 'Not set', languageDisplay, roles),
-    strings.profile_options[lang],
-    lang
+    strings.profile_options[lang]
   );
 }
 
-module.exports = { handleProfile };
+module.exports = { handleProfile, showProfileMenu };

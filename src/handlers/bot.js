@@ -2,7 +2,7 @@ const User = require('../models/User');
 const Booking = require('../models/Booking');
 const { t } = require('../lang/strings');
 const { sendMessage } = require('../services/twilio');
-const { formatDate } = require('../utils/dateUtils');
+const { formatDateForDisplay } = require('../utils/dateUtils');
 const { handleOnboarding } = require('./onboarding');
 const { handleMainMenu, showMainMenu } = require('./mainMenu');
 const { handleEquipmentSearch } = require('./equipmentSearch');
@@ -103,24 +103,15 @@ async function handleMessage(user, body, location, media) {
 
   if (
     user.isRegistered &&
-    body.trim().toUpperCase() === 'HELP'
+    (body.trim().toUpperCase() === 'HELP' || body.trim().toUpperCase() === 'H')
   ) {
 
-    await user.updateOne({
-      state: 'MAIN_MENU',
-      tempData: {},
-      lastMessageAt: now,
-    });
-
-    const updated = await User.findById(user._id);
-
     await sendMessage(
-      updated.phone,
-      t('help_message', lang),
-      lang
+      user.phone,
+      t('help_message', lang)
     );
 
-    return showMainMenu(updated, lang);
+    return; // Don't change state, stay where they are
   }
 
   // ------------------------------------------------------------------
@@ -146,7 +137,7 @@ async function handleMessage(user, body, location, media) {
 
     await sendMessage(user.phone, t('cancel_success_farmer', lang, booking.bookingId), lang);
 
-    const dateStr = formatDate(booking.bookingDate);
+    const dateStr = formatDateForDisplay(booking.bookingDate);
     const provider = await User.findById(booking.providerId);
     const providerLang = provider?.language || 'gu';
 

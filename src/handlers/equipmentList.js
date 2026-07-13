@@ -15,9 +15,12 @@ async function handleEquipmentList(user, body, location, lang, media) {
     // ── Pick equipment type ───────────────────────────────────────────────────
     case 'EQ_LIST_TYPE': {
       const choice = parseInt(body);
-      if (choice === 6) { await user.updateOne({ state: 'MAIN_MENU', tempData: {} }); return showMainMenu(user, lang); }
-      if (!choice || choice < 1 || choice > strings.equipment_types_raw.length) {
-        await sendMenu(user.phone, t('ask_list_equipment_type', lang), strings.equipment_types[lang], lang);
+      if (choice === 0 || !choice || choice < 1 || choice > strings.equipment_types_raw.length) {
+        if (choice === 0) {
+          await user.updateOne({ state: 'MAIN_MENU', tempData: {} });
+          return showMainMenu(user, lang);
+        }
+        await sendMenu(user.phone, t('ask_list_equipment_type', lang), strings.equipment_types[lang]);
         break;
       }
       const eqType = strings.equipment_types_raw[choice - 1];

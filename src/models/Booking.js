@@ -64,6 +64,16 @@ const bookingSchema = new mongoose.Schema(
       default: 1,
       min: 1
     },
+    rate: {
+      type: Number,
+      required: true,
+      // Daily rate at time of booking (frozen snapshot)
+    },
+    itemName: {
+      type: String,
+      default: '',
+      // Equipment type or labour skill(s)
+    },
     cancellationReason: {
       type: String,
       default: null,

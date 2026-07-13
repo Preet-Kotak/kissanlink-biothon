@@ -97,8 +97,7 @@ async function handleEquipmentSearch(user, body, location, lang) {
       }
 
       // Invalid selection, re-prompt
-      const prompt = t('eq_search_date_prompt', lang, formatDateForDisplay(tomorrow), formatDateForDisplay(inOneWeek));
-      return sendMessage(user.phone, t('invalid_input', lang) + '\n\n' + prompt);
+      return; // Do nothing on invalid input
     }
 
     // ── STATE: CUSTOM DATE INPUT ─────────────────────────────────────────────
@@ -127,7 +126,7 @@ async function handleEquipmentSearch(user, body, location, lang) {
       }
 
       const selectedType = typesRaw[typeIndex];
-      const targetDate = new Date(user.tempData.bookingDate);
+      const targetDate = new Date(user.tempData?.bookingDate || Date.now());
 
       // Execute the Smart Filter
       const listings = await getAvailableEquipmentListings(selectedType, targetDate, user.location.coordinates);
@@ -153,7 +152,7 @@ async function handleEquipmentSearch(user, body, location, lang) {
       const savedResults = user.tempData.searchResults || [];
 
       if (isNaN(choiceIndex) || choiceIndex < 0 || choiceIndex >= savedResults.length) {
-        return sendMessage(user.phone, t('invalid_number', lang));
+        return; // Do nothing on invalid input
       }
 
       const selectedListingId = savedResults[choiceIndex];
@@ -205,8 +204,17 @@ async function handleEquipmentSearch(user, body, location, lang) {
  */
 async function createEquipmentBooking(user, days, lang) {
   try {
-    const selectedListingId = user.tempData.selectedListingId;
-    const targetDate = new Date(user.tempData.bookingDate);
+    const selectedListingId = user.tempData?.selectedListingId;
+    const bookingDate = user.tempData?.bookingDate;
+    
+    if (!selectedListingId || !bookingDate) {
+      // Session data lost, return to main menu
+      await user.updateOne({ state: 'MAIN_MENU', tempData: {} });
+      await sendMessage(user.phone, t('system_error', lang));
+      return showMainMenu(user, lang);
+    }
+    
+    const targetDate = new Date(bookingDate);
     targetDate.setHours(0, 0, 0, 0);
     
     // Calculate end date
@@ -214,7 +222,14 @@ async function createEquipmentBooking(user, days, lang) {
     endDate.setDate(endDate.getDate() + days - 1);
 
     // Race Condition Check: Ensure it wasn't booked in the last 30 seconds
-    const isStillAvailable = await getAvailableEquipmentListings(user.tempData.selectedType, targetDate, user.location.coordinates);
+    const selectedType = user.tempData?.selectedType;
+    if (!selectedType) {
+      await user.updateOne({ state: 'MAIN_MENU', tempData: {} });
+      await sendMessage(user.phone, t('system_error', lang));
+      return showMainMenu(user, lang);
+    }
+    
+    const isStillAvailable = await getAvailableEquipmentListings(selectedType, targetDate, user.location.coordinates);
     if (!isStillAvailable.find(l => l._id.toString() === selectedListingId)) {
       return sendMessage(user.phone, t('listing_just_booked', lang));
     }
@@ -285,8 +300,8 @@ async function sendEquipmentTypePrompt(phone, lang, isError = false) {
   let msg = isError ? t('invalid_input', lang) + '\n\n' : '';
   msg += t('ask_equipment_type', lang) + '\n';
 
-  types.forEach((type, index) => {
-    msg += `\n${index + 1}. ${type}`;
+  types.forEach((type) => {
+    msg += `\n${type}`;
   });
 
   msg += '\n\n' + t('back_hint', lang);

@@ -18,12 +18,15 @@ async function handleLabourList(user, body, location, lang, media) {
     case 'LAB_LIST_SKILL': {
       // Allow comma-separated choices like "1,3" or single "2"
       const raw = body.trim().split(',').map((s) => parseInt(s.trim())).filter(Boolean);
-      // 6 = back to main menu
-      if (raw.includes(6)) { await user.updateOne({ state: 'MAIN_MENU', tempData: {} }); return showMainMenu(user, lang); }
+      // 0 = back to main menu
+      if (raw.includes(0)) { 
+        await user.updateOne({ state: 'MAIN_MENU', tempData: {} }); 
+        return showMainMenu(user, lang);
+      }
       const valid = raw.filter((n) => n >= 1 && n <= strings.labour_skills_raw.length);
 
       if (valid.length === 0) {
-        await sendMenu(user.phone, t('ask_worker_skill', lang), strings.labour_skills[lang], lang);
+        await sendMenu(user.phone, t('ask_worker_skill', lang), strings.labour_skills[lang]);
         break;
       }
 

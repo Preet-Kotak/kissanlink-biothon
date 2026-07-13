@@ -18,7 +18,7 @@ router.post('/', async (req, res) => {
   const media = {
     url: req.body.MediaUrl0 || null,
     contentType: req.body.MediaContentType0 || null
-  }
+  };
   if (!from) return;
 
   try {
