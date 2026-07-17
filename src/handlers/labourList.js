@@ -69,16 +69,38 @@ async function handleLabourList(user, body, location, lang, media) {
 
       const skills = user.tempData.skills;
       const rate = user.tempData.rate;
+      
+      // Validate session data
+      if (!skills || !rate) {
+        await user.updateOne({ state: 'MAIN_MENU', tempData: {} });
+        await sendMessage(user.phone, t('system_error', lang));
+        return showMainMenu(user, lang);
+      }
 
       // Update or create listing
       const existing = await LabourListing.findOne({ workerId: user._id });
       if (existing) {
-        await existing.updateOne({ skills, dailyRate: rate, photoUrl, available: true });
+        await existing.updateOne({ 
+          skills, 
+          dailyRate: rate, 
+          photoUrl, 
+          available: true,
+          workerName: user.name || 'Worker',
+          location: user.location || existing.location,
+          village: user.village || existing.village || ''
+        });
       } else {
+        // Validate required fields before creating
+        if (!user.location || !user.location.coordinates) {
+          await user.updateOne({ state: 'MAIN_MENU', tempData: {} });
+          await sendMessage(user.phone, t('location_required', lang) || 'Location is required. Please share your location first.');
+          return showMainMenu(user, lang);
+        }
+        
         await LabourListing.create({
           workerId: user._id,
           workerPhone: user.phone,
-          workerName: user.name,
+          workerName: user.name || 'Worker',
           skills,
           dailyRate: rate,
           photoUrl,

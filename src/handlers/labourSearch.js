@@ -234,7 +234,20 @@ async function createLabourBooking(user, days, lang) {
     }
 
     const listing = await LabourListing.findById(selectedListingId);
+    
+    if (!listing) {
+      await user.updateOne({ state: 'MAIN_MENU', tempData: {} });
+      await sendMessage(user.phone, t('system_error', lang));
+      return showMainMenu(user, lang);
+    }
+    
     const worker = await User.findById(listing.workerId);
+    
+    if (!worker) {
+      await user.updateOne({ state: 'MAIN_MENU', tempData: {} });
+      await sendMessage(user.phone, t('system_error', lang));
+      return showMainMenu(user, lang);
+    }
 
     // 1. Create Pending Booking with multi-day support
     const booking = await Booking.create({
@@ -319,19 +332,37 @@ async function showLabourResults(user, listings, lang) {
   // 2. Send each listing card
   for (let index = 0; index < listings.length; index++) {
     const listing = listings[index];
-    const dist = calculateDistance(
-      user.location.coordinates[1], user.location.coordinates[0],
-      listing.location.coordinates[1], listing.location.coordinates[0]
-    );
+    
+    // Safely access all fields with fallbacks
+    const workerName = listing.workerName || 'Worker';
+    const village = listing.village || 'Nearby';
+    const dailyRate = listing.dailyRate || 0;
     const rating = listing.rating ? listing.rating.toFixed(1) : 'New';
-    const listingDetailsText = t('labour_card', lang, index + 1, listing.workerName, listing.village || 'Nearby', listing.dailyRate, rating, dist + 'km');
+    const photoUrl = listing.photoUrl || null;
+    
+    // Safe distance calculation
+    let dist = '0';
+    try {
+      if (listing.location && listing.location.coordinates && 
+          user.location && user.location.coordinates) {
+        dist = calculateDistance(
+          user.location.coordinates[1], user.location.coordinates[0],
+          listing.location.coordinates[1], listing.location.coordinates[0]
+        );
+      }
+    } catch (err) {
+      console.error('[showLabourResults] Distance calc error:', err);
+      dist = 'N/A';
+    }
+    
+    const listingDetailsText = t('labour_card', lang, index + 1, workerName, village, dailyRate, rating, dist + 'km');
 
-    if (listing.photoUrl) {
+    if (photoUrl) {
       await sendMessage(
         user.phone,
         listingDetailsText,
         lang,
-        listing.photoUrl
+        photoUrl
       );
     } else {
       await sendMessage(user.phone, listingDetailsText, lang);

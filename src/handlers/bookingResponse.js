@@ -37,6 +37,15 @@ async function handleBookingResponse(user, body, lang) {
     }
 
     const farmer = booking.farmerId;
+    
+    // Check if farmer exists (in case account was deleted)
+    if (!farmer) {
+      await sendMessage(user.phone, "⚠️ This booking request is no longer valid.");
+      await booking.updateOne({ status: 'cancelled' });
+      await user.updateOne({ state: 'MAIN_MENU', tempData: {} });
+      return showMainMenu(user, lang);
+    }
+    
     const farmerLang = farmer.language || 'gu';
     
     // Use startDate (Task 4 compatibility) or fallback to bookingDate

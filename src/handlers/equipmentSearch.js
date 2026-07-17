@@ -235,7 +235,20 @@ async function createEquipmentBooking(user, days, lang) {
     }
 
     const listing = await EquipmentListing.findById(selectedListingId);
+    
+    if (!listing) {
+      await user.updateOne({ state: 'MAIN_MENU', tempData: {} });
+      await sendMessage(user.phone, t('system_error', lang));
+      return showMainMenu(user, lang);
+    }
+    
     const owner = await User.findById(listing.ownerId);
+    
+    if (!owner) {
+      await user.updateOne({ state: 'MAIN_MENU', tempData: {} });
+      await sendMessage(user.phone, t('system_error', lang));
+      return showMainMenu(user, lang);
+    }
 
     // 1. Create the Pending Booking with multi-day support
     const booking = await Booking.create({
@@ -320,19 +333,37 @@ async function showEquipmentResults(user, listings, lang) {
   // 2. Send each listing card
   for (let index = 0; index < listings.length; index++) {
     const listing = listings[index];
-    const dist = calculateDistance(
-      user.location.coordinates[1], user.location.coordinates[0],
-      listing.location.coordinates[1], listing.location.coordinates[0]
-    );
+    
+    // Safely access all fields with fallbacks
+    const ownerName = listing.ownerName || 'Owner';
+    const village = listing.village || 'Nearby';
+    const dailyRate = listing.dailyRate || 0;
     const rating = listing.rating ? listing.rating.toFixed(1) : 'New';
-    const listingDetailsText = t('equipment_card', lang, index + 1, listing.ownerName, listing.village || 'Nearby', listing.dailyRate, rating, dist + 'km');
+    const photoUrl = listing.photoUrl || null;
+    
+    // Safe distance calculation
+    let dist = '0';
+    try {
+      if (listing.location && listing.location.coordinates && 
+          user.location && user.location.coordinates) {
+        dist = calculateDistance(
+          user.location.coordinates[1], user.location.coordinates[0],
+          listing.location.coordinates[1], listing.location.coordinates[0]
+        );
+      }
+    } catch (err) {
+      console.error('[showEquipmentResults] Distance calc error:', err);
+      dist = 'N/A';
+    }
+    
+    const listingDetailsText = t('equipment_card', lang, index + 1, ownerName, village, dailyRate, rating, dist + 'km');
 
-    if (listing.photoUrl) {
+    if (photoUrl) {
       await sendMessage(
         user.phone,
         listingDetailsText,
         lang,
-        listing.photoUrl
+        photoUrl
       );
     } else {
       await sendMessage(user.phone, listingDetailsText, lang);
