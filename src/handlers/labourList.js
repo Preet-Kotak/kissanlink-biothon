@@ -44,80 +44,93 @@ async function handleLabourList(user, body, location, lang, media) {
         break;
       }
       await user.updateOne({ state: 'LAB_LIST_PHOTO', tempData: { ...user.tempData, rate } });
-      await sendMessage(user.phone, t('ask_PhotoUrl_labour', lang) + '\n' + t('back_hint', lang));
+      await sendMessage(user.phone, t('ask_PhotoUrl_labour', lang) + '\n' + t('back_hint', lang), lang);
       break;
     }
 
     case 'LAB_LIST_PHOTO': {
-      let photoUrl = null;
-      if (media && media.url) {
-        const cType = media.contentType || '';
-        if (cType === 'image/jpeg' || cType === 'image/png') {
-          photoUrl = media.url;
-          await sendMessage(user.phone, t('photo_uploaded', lang));
+      try {
+        const textBody = (body || '').trim().toLowerCase();
+        const isSkip = ['skip', 'no', '0', 'none', 'pass', 'સ્કીપ', 'નથી', 'છોડો', 'नहीं', 'छोड़ें'].includes(textBody);
+        let photoUrl = null;
+
+        if (media && media.url) {
+          const cType = (media.contentType || '').toLowerCase();
+          if (cType.startsWith('image/')) {
+            photoUrl = media.url;
+            await sendMessage(user.phone, t('photo_uploaded', lang), lang);
+          } else {
+            await sendMessage(user.phone, t('invalid_image', lang), lang);
+            await sendMessage(user.phone, t('ask_PhotoUrl_labour', lang) + '\n' + t('back_hint', lang), lang);
+            break;
+          }
+        } else if (isSkip || textBody.length > 0) {
+          // Photo skipped
+          photoUrl = null;
         } else {
-          await sendMessage(user.phone, t('invalid_image', lang));
-          await sendMessage(user.phone, t('ask_PhotoUrl_labour', lang) + '\n' + t('back_hint', lang));
+          await sendMessage(user.phone, t('invalid_image', lang), lang);
           break;
         }
-      } else if (body.trim().toLowerCase() === 'skip') {
-        photoUrl = null;
-      } else {
-        await sendMessage(user.phone, t('invalid_image', lang));
-        break;
-      }
 
-      const skills = user.tempData.skills;
-      const rate = user.tempData.rate;
-      
-      // Validate session data
-      if (!skills || !rate) {
-        await user.updateOne({ state: 'MAIN_MENU', tempData: {} });
-        await sendMessage(user.phone, t('system_error', lang));
-        return showMainMenu(user, lang);
-      }
+        const skills = user.tempData?.skills;
+        const rate = user.tempData?.rate;
 
-      // Update or create listing
-      const existing = await LabourListing.findOne({ workerId: user._id });
-      if (existing) {
-        await existing.updateOne({ 
-          skills, 
-          dailyRate: rate, 
-          photoUrl, 
-          available: true,
-          workerName: user.name || 'Worker',
-          location: user.location || existing.location,
-          village: user.village || existing.village || ''
-        });
-      } else {
-        // Validate required fields before creating
-        if (!user.location || !user.location.coordinates) {
+        // Validate session data
+        if (!skills || !rate) {
           await user.updateOne({ state: 'MAIN_MENU', tempData: {} });
-          await sendMessage(user.phone, t('location_required', lang) || 'Location is required. Please share your location first.');
+          await sendMessage(user.phone, t('system_error', lang), lang);
           return showMainMenu(user, lang);
         }
-        
-        await LabourListing.create({
-          workerId: user._id,
-          workerPhone: user.phone,
-          workerName: user.name || 'Worker',
-          skills,
-          dailyRate: rate,
-          photoUrl,
-          available: true,
-          location: user.location,
-          village: user.village || '',
+
+        // Validate required user location
+        if (!user.location || !user.location.coordinates || user.location.coordinates.length < 2) {
+          await user.updateOne({ state: 'MAIN_MENU', tempData: {} });
+          await sendMessage(user.phone, t('location_required', lang) || '📍 Location is required. Please update your profile location.', lang);
+          return showMainMenu(user, lang);
+        }
+
+        // Update or create listing
+        const existing = await LabourListing.findOne({ workerId: user._id });
+        if (existing) {
+          const updatedPhotoUrl = photoUrl !== null ? photoUrl : existing.photoUrl;
+          await existing.updateOne({ 
+            skills, 
+            dailyRate: rate, 
+            photoUrl: updatedPhotoUrl, 
+            available: true,
+            workerName: user.name || 'Worker',
+            location: user.location || existing.location,
+            village: user.village || existing.village || ''
+          });
+        } else {
+          await LabourListing.create({
+            workerId: user._id,
+            workerPhone: user.phone,
+            workerName: user.name || 'Worker',
+            skills,
+            dailyRate: rate,
+            photoUrl,
+            available: true,
+            location: user.location,
+            village: user.village || '',
+          });
+        }
+
+        // Use $addToSet so MongoDB guarantees no duplicate roles
+        await user.updateOne({
+          $addToSet: { roles: 'worker' },
+          $set: { state: 'MAIN_MENU', tempData: {} },
         });
+
+        await sendMessage(user.phone, t('worker_listed', lang, user.name), lang);
+        const updatedUser = await User.findById(user._id);
+        await showMainMenu(updatedUser, lang);
+      } catch (err) {
+        console.error('❌ Error creating labour listing:', err);
+        await user.updateOne({ state: 'MAIN_MENU', tempData: {} });
+        await sendMessage(user.phone, t('system_error', lang), lang);
+        await showMainMenu(user, lang);
       }
-
-      // Use $addToSet so MongoDB guarantees no duplicate roles
-      await user.updateOne({
-        $addToSet: { roles: 'worker' },
-        $set: { state: 'MAIN_MENU', tempData: {} },
-      });
-
-      await sendMessage(user.phone, t('worker_listed', lang, user.name), lang);
-      await showMainMenu(user, lang);
       break;
     }
 

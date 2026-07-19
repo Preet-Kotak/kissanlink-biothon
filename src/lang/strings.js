@@ -249,7 +249,7 @@ const strings = {
     hi: `😔 पास में कोई उपलब्ध नहीं है। कृपया कोई अन्य खोज करने का प्रयास करें।`,
     en: `😔 No listings found nearby. Try another search.`
   },
-  
+
   eq_search_results_header: {
     gu: `🚜 ઉપલબ્ધ સાધનો:`,
     hi: `🚜 उपलब्ध उपकरण:`,
@@ -368,6 +368,85 @@ const strings = {
     en: `⚠️ Sorry, someone just booked this. Please choose another.\n\n💡 _Press H for help_`
   },
 
+  booking_confirmed_farmer: {
+    gu: (bookingId, itemType, itemEmoji, itemLabel, providerRole, providerName, dateStr, rate, providerPhone, isMultiDay, totalCost) =>
+      `✅ *બુકિંગ Confirmed!*\n\n` +
+      `Booking ID: ${bookingId}\n` +
+      `${itemEmoji} ${itemLabel}: ${itemType}\n` +
+      `👤 ${providerRole}: ${providerName}\n` +
+      `📅 તારીખ: ${dateStr}\n` +
+      `💰 ભાવ: ₹${rate}/દિવસ${isMultiDay ? ` (કુલ: ₹${totalCost})` : ''}\n` +
+      `📞 સંપર્ક: ${providerPhone}\n\n` +
+      `${providerRole} ને notification ગઈ છે. સીધો સંપર્ક કરી શકો છો.\n\n` +
+      `(રદ કરવા માટે લખો: CANCEL ${bookingId})\n\n` +
+      `(કોઈપણ સમયે 0 દબાવો = મુખ્ય મેનૂ)`,
+
+    hi: (bookingId, itemType, itemEmoji, itemLabel, providerRole, providerName, dateStr, rate, providerPhone, isMultiDay, totalCost) =>
+      `✅ *बुकिंग Confirmed!*\n\n` +
+      `Booking ID: ${bookingId}\n` +
+      `${itemEmoji} ${itemLabel}: ${itemType}\n` +
+      `👤 ${providerRole}: ${providerName}\n` +
+      `📅 तारीख: ${dateStr}\n` +
+      `💰 किराया: ₹${rate}/दिन${isMultiDay ? ` (कुल: ₹${totalCost})` : ''}\n` +
+      `📞 संपर्क: ${providerPhone}\n\n` +
+      `${providerRole} को notification भेज दी गई है। सीधा संपर्क कर सकते हैं।\n\n` +
+      `(रद्द करने के लिए लिखें: CANCEL ${bookingId})\n\n` +
+      `(किसी भी समय 0 दबाएं = मुख्य मेनू)`,
+
+    en: (bookingId, itemType, itemEmoji, itemLabel, providerRole, providerName, dateStr, rate, providerPhone, isMultiDay, totalCost) =>
+      `✅ *Booking Confirmed!*\n\n` +
+      `Booking ID: ${bookingId}\n` +
+      `${itemEmoji} ${itemLabel}: ${itemType}\n` +
+      `👤 ${providerRole}: ${providerName}\n` +
+      `📅 Date: ${dateStr}\n` +
+      `💰 Rate: ₹${rate}/day${isMultiDay ? ` (Total: ₹${totalCost})` : ''}\n` +
+      `📞 Contact: ${providerPhone}\n\n` +
+      `${providerRole} has been notified. You can contact them directly.\n\n` +
+      `(To cancel type: CANCEL ${bookingId})\n\n` +
+      `(Press 0 anytime = Main Menu)`
+  },
+
+  booking_request_provider: {
+    gu: (bookingId, itemType, itemEmoji, itemLabel, farmerName, dateStr, rate, farmerPhone, isMultiDay, totalCost) =>
+      `🔔 *નવી બુકિંગ!*\n\n` +
+      `Booking ID: ${bookingId}\n` +
+      `${itemEmoji} ${itemLabel}: ${itemType}\n` +
+      `👤 ખેડૂત: ${farmerName}\n` +
+      `📅 તારીખ: ${dateStr}\n` +
+      `💰 ભાવ: ₹${rate}/દિવસ${isMultiDay ? ` (કુલ: ₹${totalCost})` : ''}\n` +
+      `📞 સંપર્ક: ${farmerPhone}\n\n` +
+      `KissanLink\n\n` +
+      `1. હા, કન્ફર્મ કરો (આ મેસેજ આગળ મોકલો)\n` +
+      `2. ના, રદ્દ કરો\n\n` +
+      `(કોઈપણ સમયે 0 દબાવો = મુખ્ય મેનૂ)`,
+
+    hi: (bookingId, itemType, itemEmoji, itemLabel, farmerName, dateStr, rate, farmerPhone, isMultiDay, totalCost) =>
+      `🔔 *नई बुकिंग!*\n\n` +
+      `Booking ID: ${bookingId}\n` +
+      `${itemEmoji} ${itemLabel}: ${itemType}\n` +
+      `👤 किसान: ${farmerName}\n` +
+      `📅 तारीख: ${dateStr}\n` +
+      `💰 किराया: ₹${rate}/दिन${isMultiDay ? ` (कुल: ₹${totalCost})` : ''}\n` +
+      `📞 संपर्क: ${farmerPhone}\n\n` +
+      `1. हाँ, कन्फर्म करें (यह मैसेज आगे भेजें)\n` +
+      `2. नहीं, रद्द करें\n\n` +
+      `KissanLink\n\n` +
+      `(किसी भी समय 0 दबाएं = मुख्य मेनू)`,
+
+    en: (bookingId, itemType, itemEmoji, itemLabel, farmerName, dateStr, rate, farmerPhone, isMultiDay, totalCost) =>
+      `🔔 *New Booking!*\n\n` +
+      `Booking ID: ${bookingId}\n` +
+      `${itemEmoji} ${itemLabel}: ${itemType}\n` +
+      `👤 Farmer: ${farmerName}\n` +
+      `📅 Date: ${dateStr}\n` +
+      `💰 Rate: ₹${rate}/day${isMultiDay ? ` (Total: ₹${totalCost})` : ''}\n` +
+      `📞 Contact: ${farmerPhone}\n\n` +
+      `1. Yes, confirm (send this message forward)\n` +
+      `2. No, cancel\n\n` +
+      `KissanLink\n\n` +
+      `(Press 0 anytime = Main Menu)`
+  },
+
   eq_booking_created_farmer: {
     gu: (ownerName, phone) => `✅ રિક્વેસ્ટ ${ownerName} ને મોકલવામાં આવી છે. તેમનો નંબર: ${phone}. તેઓ જલ્દી કન્ફર્મ કરશે.`,
     hi: (ownerName, phone) => `✅ रिक्वेस्ट ${ownerName} को भेज दी गई है। उनका नंबर: ${phone}। वे जल्द ही कन्फर्म करेंगे।`,
@@ -390,12 +469,6 @@ const strings = {
     gu: (farmerName, farmerPhone, skill, date, rate) => `🔔 ${farmerName} (${farmerPhone}) ને ${date} ના રોજ ₹${rate} માં તમારું ${skill} કામ જોઈએ છે.\n\nજવાબ આપો:\n1 મંજૂર કરવા\n2 ના પાડવા`,
     hi: (farmerName, farmerPhone, skill, date, rate) => `🔔 ${farmerName} (${farmerPhone}) को ${date} को ₹${rate} में आपका ${skill} काम चाहिए।\n\nजवाब दें:\n1 मंजूर करने के लिए\n2 मना करने के लिए`,
     en: (farmerName, farmerPhone, skill, date, rate) => `🔔 ${farmerName} (${farmerPhone}) wants your ${skill} work on ${date} for ₹${rate}.\n\nReply:\n1 to Accept\n2 to Decline`
-  },
-
-  booking_confirmed_farmer: {
-    gu: (providerName, date) => `✅ ${providerName} એ ${date} માટે તમારું બુકિંગ કન્ફર્મ કર્યું છે!`,
-    hi: (providerName, date) => `✅ ${providerName} ने ${date} के लिए आपकी बुकिंग कन्फर्म कर दी है!`,
-    en: (providerName, date) => `✅ ${providerName} confirmed your booking for ${date}!`
   },
 
   booking_confirmed_provider: {

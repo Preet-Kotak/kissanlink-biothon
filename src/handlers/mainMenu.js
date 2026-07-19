@@ -49,8 +49,8 @@ async function handleMainMenu(user, body, lang) {
       break;
 
     case 5: // My Profile
-      await handleProfileView(user, lang);
-      break;
+      const { showProfileMenu } = require('./profile');
+      return showProfileMenu(user, lang);
 
     case 6: // My Bookings (Task 4 - Part 2 & 8)
       await user.updateOne({ state: 'MY_BOOKINGS', tempData: {} });

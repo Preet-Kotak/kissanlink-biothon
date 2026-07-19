@@ -44,28 +44,44 @@ async function getAvailableEquipmentListings(type, dateObj, coordinates) {
     blockedDates: { $ne: targetDate }
   };
 
+  const coords = (coordinates && Array.isArray(coordinates) && coordinates.length === 2)
+    ? coordinates
+    : [72.8311, 21.1702]; // Default to Surat, Gujarat center
+
   // Step 2: Geospatial search (10km radius)
   let listings = await EquipmentListing.find({
     ...baseQuery,
     location: {
       $near: {
-        $geometry: { type: 'Point', coordinates: coordinates },
+        $geometry: { type: 'Point', coordinates: coords },
         $maxDistance: 10000
       }
     }
-  }).limit(3).lean();
+  }).limit(5).lean();
 
-  // Step 3: Expand to 20km if no results found
+  // Step 3: Expand to 50km if < 3 results
   if (listings.length < 3) {
     listings = await EquipmentListing.find({
       ...baseQuery,
       location: {
         $near: {
-          $geometry: { type: 'Point', coordinates: coordinates },
-          $maxDistance: 20000
+          $geometry: { type: 'Point', coordinates: coords },
+          $maxDistance: 50000
         }
       }
-    }).limit(3).lean();
+    }).limit(5).lean();
+  }
+
+  // Step 4: System-wide fallback if still 0 results (so remote/testing users still see available equipment)
+  if (listings.length === 0) {
+    listings = await EquipmentListing.find({
+      ...baseQuery,
+      location: {
+        $near: {
+          $geometry: { type: 'Point', coordinates: coords }
+        }
+      }
+    }).limit(5).lean();
   }
 
   return listings;
@@ -128,8 +144,9 @@ async function handleEquipmentSearch(user, body, location, lang) {
       const selectedType = typesRaw[typeIndex];
       const targetDate = new Date(user.tempData?.bookingDate || Date.now());
 
-      // Execute the Smart Filter
-      const listings = await getAvailableEquipmentListings(selectedType, targetDate, user.location.coordinates);
+      // Execute the Smart Filter safely
+      const userCoords = user?.location?.coordinates || [72.8311, 21.1702];
+      const listings = await getAvailableEquipmentListings(selectedType, targetDate, userCoords);
 
       if (listings.length === 0) {
         await sendMessage(user.phone, t('no_listings_found', lang));
@@ -269,23 +286,29 @@ async function createEquipmentBooking(user, days, lang) {
       status: 'pending'
     });
 
-    // 2. Notify Farmer immediately with Owner's contact
+    // 2. Notify Farmer immediately with Owner's contact matching exact screenshot layout
     const dateDisplay = days > 1 
       ? `${formatDateForDisplay(targetDate)} to ${formatDateForDisplay(endDate)} (${days} days)`
       : formatDateForDisplay(targetDate);
     const totalCost = listing.dailyRate * days;
-    
+    const isMultiDay = days > 1;
+
+    const itemEmoji = '🚜';
+    const itemLabel = lang === 'gu' ? 'સાધન' : lang === 'hi' ? 'उपकरण' : 'Equipment';
+    const providerRole = lang === 'gu' ? 'માલિક' : lang === 'hi' ? 'मालिक' : 'Owner';
+
     await sendMessage(user.phone, 
-      t('eq_booking_created_farmer', lang, owner.name || 'the owner', owner.phone) + 
-      `\n\n📅 ${dateDisplay}\n💰 Total: ₹${totalCost}`
+      t('booking_confirmed_farmer', lang, booking.bookingId, listing.type, itemEmoji, itemLabel, providerRole, owner.name || 'Owner', dateDisplay, listing.dailyRate, owner.phone, isMultiDay, totalCost),
+      lang
     );
 
-    // 3. Notify Owner and set state to await response
+    // 3. Notify Owner with New Booking format matching exact screenshot layout
     const ownerLang = owner.language || 'gu';
-    
+    const itemLabelOwner = ownerLang === 'gu' ? 'સાધન' : ownerLang === 'hi' ? 'उपकरण' : 'Equipment';
+
     await sendMessage(owner.phone, 
-      t('eq_booking_request_provider', ownerLang, user.name || 'A farmer', user.phone, listing.type, dateDisplay, listing.dailyRate) +
-      (days > 1 ? `\n\n💰 Total: ₹${totalCost} (${days} days)` : '')
+      t('booking_request_provider', ownerLang, booking.bookingId, listing.type, itemEmoji, itemLabelOwner, user.name || 'Farmer', dateDisplay, listing.dailyRate, user.phone, isMultiDay, totalCost),
+      ownerLang
     );
     
     await owner.updateOne({
@@ -326,22 +349,26 @@ async function sendEquipmentTypePrompt(phone, lang, isError = false) {
  */
 async function showEquipmentResults(user, listings, lang) {
   const savedResults = [];
+  // Strictly cap at maximum 5 listings
+  const topListings = listings.slice(0, 5);
 
-  // 1. Send header
+  const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  // 1. Send Header
   await sendMessage(user.phone, t('eq_search_results_header', lang), lang);
 
-  // 2. Send each listing card
-  for (let index = 0; index < listings.length; index++) {
-    const listing = listings[index];
+  // 2. Send each listing card with a 1.2s delay to guarantee strict delivery order
+  for (let index = 0; index < topListings.length; index++) {
+    await delay(1200);
+
+    const listing = topListings[index];
     
-    // Safely access all fields with fallbacks
     const ownerName = listing.ownerName || 'Owner';
     const village = listing.village || 'Nearby';
     const dailyRate = listing.dailyRate || 0;
     const rating = listing.rating ? listing.rating.toFixed(1) : 'New';
     const photoUrl = listing.photoUrl || null;
     
-    // Safe distance calculation
     let dist = '0';
     try {
       if (listing.location && listing.location.coordinates && 
@@ -356,23 +383,19 @@ async function showEquipmentResults(user, listings, lang) {
       dist = 'N/A';
     }
     
-    const listingDetailsText = t('equipment_card', lang, index + 1, ownerName, village, dailyRate, rating, dist + 'km');
+    const cardText = t('equipment_card', lang, index + 1, ownerName, village, dailyRate, rating, dist + 'km');
 
     if (photoUrl) {
-      await sendMessage(
-        user.phone,
-        listingDetailsText,
-        lang,
-        photoUrl
-      );
+      await sendMessage(user.phone, cardText, lang, photoUrl);
     } else {
-      await sendMessage(user.phone, listingDetailsText, lang);
+      await sendMessage(user.phone, cardText, lang);
     }
 
     savedResults.push(listing._id.toString());
   }
 
-  // 3. Send footer
+  // 3. Send Footer
+  await delay(1200);
   await sendMessage(user.phone, t('eq_search_results_footer', lang), lang);
 
   return savedResults;

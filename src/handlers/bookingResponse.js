@@ -60,11 +60,29 @@ async function handleBookingResponse(user, body, lang) {
       booking.status = 'confirmed';
       await booking.save();
 
-      // Notify the Provider (Owner/Worker)
-      await sendMessage(user.phone, t('booking_confirmed_provider', lang, farmerName));
+      const itemEmoji = booking.type === 'equipment' ? '🚜' : '👷';
+      const itemLabelFarmer = farmerLang === 'gu' 
+        ? (booking.type === 'equipment' ? 'સાધન' : 'કામ') 
+        : farmerLang === 'hi' 
+        ? (booking.type === 'equipment' ? 'उपकरण' : 'काम') 
+        : (booking.type === 'equipment' ? 'Equipment' : 'Work');
+      const providerRole = farmerLang === 'gu' 
+        ? (booking.type === 'equipment' ? 'માલિક' : 'મજૂર') 
+        : farmerLang === 'hi' 
+        ? (booking.type === 'equipment' ? 'मालिक' : 'मजदूर') 
+        : (booking.type === 'equipment' ? 'Owner' : 'Worker');
       
-      // Notify the Farmer
-      await sendMessage(farmer.phone, t('booking_confirmed_farmer', farmerLang, providerName, formattedDate));
+      const isMultiDay = (booking.days || 1) > 1;
+      const totalCost = (booking.rate || 0) * (booking.days || 1);
+
+      // Notify the Provider (Owner/Worker)
+      await sendMessage(user.phone, t('booking_confirmed_provider', lang, farmerName), lang);
+      
+      // Notify the Farmer matching exact screenshot layout
+      await sendMessage(farmer.phone, 
+        t('booking_confirmed_farmer', farmerLang, booking.bookingId, booking.itemName, itemEmoji, itemLabelFarmer, providerRole, providerName, formattedDate, booking.rate, user.phone, isMultiDay, totalCost),
+        farmerLang
+      );
 
     } else if (choice === '2') {
       // ── DECLINE FLOW ─────────────────────────────────────────────

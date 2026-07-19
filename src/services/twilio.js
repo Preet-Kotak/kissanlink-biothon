@@ -24,13 +24,37 @@ async function sendMessage(to, body, lang = 'gu', mediaUrl = null) {
       body: body,
     };
 
-    if (mediaUrl) {
-      messageData.mediaUrl = [mediaUrl];
+    // Only attach mediaUrl if it's a valid public URL or matches current Twilio Account SID
+    let validMediaUrl = mediaUrl;
+    if (validMediaUrl && validMediaUrl.includes('api.twilio.com')) {
+      const currentSid = process.env.TWILIO_ACCOUNT_SID;
+      if (currentSid && !validMediaUrl.includes(currentSid)) {
+        console.warn(`⚠️ Media URL from different Twilio account detected. Sending text-only card to avoid async message drop.`);
+        validMediaUrl = null;
+      }
+    }
+
+    if (validMediaUrl) {
+      messageData.mediaUrl = [validMediaUrl];
     }
 
     await client.messages.create(messageData);
   } catch (err) {
     console.error(`❌ Twilio send error to ${to}:`, err.message);
+
+    // Automatic fallback: If sending with mediaUrl fails, retry without mediaUrl so card is never dropped
+    if (mediaUrl) {
+      try {
+        console.log(`🔄 Retrying send to ${to} without mediaUrl...`);
+        await client.messages.create({
+          from: FROM,
+          to,
+          body: body,
+        });
+      } catch (retryErr) {
+        console.error(`❌ Twilio fallback error to ${to}:`, retryErr.message);
+      }
+    }
   }
 }
 
