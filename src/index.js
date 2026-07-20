@@ -9,6 +9,9 @@ const app = express();
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
+// Serve static files (images)
+app.use(express.static('public'));
+
 // Routes
 app.use('/webhook', webhookRouter);
 

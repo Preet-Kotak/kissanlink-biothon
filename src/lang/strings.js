@@ -158,6 +158,36 @@ const strings = {
       `❌ ${canceller} cancelled the ${item} booking for ${date}.\n\nReason: ${reason}`,
   },
 
+  cancel_invalid_id: {
+    gu: `⚠️ અમાન્ય Booking ID. ફરીથી પ્રયાસ કરો.`,
+    hi: `⚠️ अमान्य Booking ID. फिर से प्रयास करें.`,
+    en: `⚠️ Invalid Booking ID. Please try again.`,
+  },
+
+  cancel_already: {
+    gu: `⚠️ આ Booking પહેલેથી રદ થઈ ગઈ છે.`,
+    hi: `⚠️ यह Booking पहले से रद्द हो चुकी है.`,
+    en: `⚠️ This booking is already cancelled.`,
+  },
+
+  cancel_success_farmer: {
+    gu: (bookingId) => `✅ Booking ${bookingId} રદ કરી દીધી.\n\nબીજી પાર્ટીને notify કર્યા છે.`,
+    hi: (bookingId) => `✅ Booking ${bookingId} रद्द कर दी।\n\nदूसरी पार्टी को notify किया गया.`,
+    en: (bookingId) => `✅ Booking ${bookingId} cancelled successfully.\n\nOther party has been notified.`,
+  },
+
+  cancel_notify_owner: {
+    gu: (type, date) => `❌ આપની ${type} की ${date} की Booking farmer દ્વારા રદ કરી દેવામાં આવી.\n\nઆપ ફરીથી બુકિંગ લઈ શકો છો.`,
+    hi: (type, date) => `❌ आपकी ${type} की ${date} की Booking farmer द्वारा रद्द कर दी गई.\n\nआप फिर से booking ले सकते हैं.`,
+    en: (type, date) => `❌ Your ${type} booking for ${date} was cancelled by the farmer.\n\nYou can accept new bookings.`,
+  },
+
+  cancel_notify_worker: {
+    gu: (farmerName, date) => `❌ ${farmerName}એ ${date}ની booking રદ કરી.\n\nઆપ ફરીથી બુકિંગ લઈ શકો છો.`,
+    hi: (farmerName, date) => `❌ ${farmerName} ने ${date} की booking रद्द कर दी.\n\nआप फिर से booking ले सकते हैं.`,
+    en: (farmerName, date) => `❌ ${farmerName} cancelled the booking for ${date}.\n\nYou can accept new bookings.`,
+  },
+
   contact_info: {
     gu: (name, phone) => `📞 ${name}\nફોન: ${phone}`,
     hi: (name, phone) => `📞 ${name}\nफोन: ${phone}`,
