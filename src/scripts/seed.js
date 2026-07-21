@@ -37,7 +37,7 @@ const villages = [
 // ── Seed users ─────────────────────────────────────────────────────────────
 const seedUsers = [
   // YOUR TEAM MEMBER - will appear in ALL searches! Update name and phone!
-  { phone: 'whatsapp:+919016875906', name: 'Preet Kotak',         village: 'Gauridad',     role: ['farmer', 'owner', 'worker'], lang: 'gu', vi: 0 },
+  { phone: 'whatsapp:+918320564971', name: 'Preet Kotak',         village: 'Gauridad',     role: ['farmer', 'owner', 'worker'], lang: 'gu', vi: 0 },
   
   // Equipment owners (vi = village index)
   { phone: 'whatsapp:+919876100001', name: 'Rameshbhai Patel',    village: 'Metoda',       role: ['farmer', 'owner'], lang: 'gu', vi: 1 },

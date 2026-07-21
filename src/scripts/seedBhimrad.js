@@ -125,6 +125,8 @@ const seedLabour = [
 ];
 
 async function seed() {
+  // Get base URL from environment or use localhost default
+  const BASE_URL = process.env.PUBLIC_URL || process.env.RENDER_URL || 'http://localhost:8080';
   // Safety check: prevent running against production DB
   if (process.env.NODE_ENV === 'production') {
     throw new Error('❌ Seed scripts cannot run in production environment');
@@ -170,7 +172,6 @@ async function seed() {
   await LabourListing.deleteMany({ workerId: { $in: createdUsers.map((u) => u._id) } });
 
   // Insert equipment with photos
-  const BASE_URL = 'https://willpower-hush-regalia.ngrok-free.dev';
   for (const eq of seedEquipment) {
     const owner = createdUsers[eq.userIdx];
     const photoUrl = eq.photo ? `${BASE_URL}/images/equipment/${eq.photo}` : null;
