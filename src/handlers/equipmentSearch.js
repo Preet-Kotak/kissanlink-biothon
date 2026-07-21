@@ -46,7 +46,7 @@ async function getAvailableEquipmentListings(type, dateObj, coordinates) {
 
   const coords = (coordinates && Array.isArray(coordinates) && coordinates.length === 2)
     ? coordinates
-    : [72.8311, 21.1702]; // Default to Surat, Gujarat center
+    : [72.9262, 22.5726]; // Default to Bhimrad, Gujarat - matches seed data
 
   // Step 2: Geospatial search (10km radius)
   let listings = await EquipmentListing.find({

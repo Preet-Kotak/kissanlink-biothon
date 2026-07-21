@@ -46,7 +46,7 @@ async function getAvailableLabourListings(skill, dateObj, coordinates) {
 
   const coords = (coordinates && Array.isArray(coordinates) && coordinates.length === 2)
     ? coordinates
-    : [72.8311, 21.1702];
+    : [72.9262, 22.5726]; // Default to Bhimrad, Gujarat
 
   // Check 10km radius
   let listings = await LabourListing.find({

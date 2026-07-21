@@ -12,9 +12,9 @@ const User = require('../models/User');
 const EquipmentListing = require('../models/EquipmentListing');
 const LabourListing = require('../models/LabourListing');
 
-// ── Centre: Marwadi University, Rajkot, Gujarat ───────────────────────────
-// Coordinates: 22.3675808°N, 70.7957320°E
-const CENTER = [72.9850, 21.2150]; // [lng, lat] - Marwadi University
+// ── Centre: Bhimrad, Gujarat ──────────────────────────────────────────────
+// Coordinates: 22.5726°N, 72.9262°E (Bhimrad)
+const CENTER = [72.9262, 22.5726]; // [lng, lat] - Bhimrad
 
 // Small offsets in degrees (~1deg lat ≈ 111km, ~1deg lng ≈ 95km at this latitude)
 // 0.05 deg ≈ 5km, 0.10 deg ≈ 10km, 0.15 deg ≈ 15km
@@ -22,12 +22,12 @@ function near(dlng, dlat) {
   return [CENTER[0] + dlng, CENTER[1] + dlat];
 }
 
-// ── Villages/Areas near Marwadi University, Rajkot ────────────────────────
+// ── Villages/Areas near Bhimrad, Gujarat ──────────────────────────────────
 const villages = [
-  { name: 'Gauridad',      coords: near(0.000,  0.000) },   // ~0km - University location
-  { name: 'Metoda',        coords: near(0.045,  0.030) },   // ~5km NE
-  { name: 'Kotda Sangani', coords: near(-0.040, 0.035) },   // ~5km NW
-  { name: 'Shapar',        coords: near(0.080,  0.015) },   // ~8km E
+  { name: 'Bhimrad',       coords: near(0.000,  0.000) },   // ~0km - Village center
+  { name: 'Karjan',        coords: near(0.045,  0.030) },   // ~5km NE
+  { name: 'Dabhoi',        coords: near(-0.040, 0.035) },   // ~5km NW
+  { name: 'Bodeli',        coords: near(0.080,  0.015) },   // ~8km E
   { name: 'Lodhika',       coords: near(-0.070, -0.025) },  // ~7.5km SW
   { name: 'Vavdi',         coords: near(0.055,  -0.055) },  // ~8km SE
   { name: 'Morbi Road',    coords: near(0.100,  0.020) },   // ~10km E
